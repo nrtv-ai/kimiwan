@@ -158,8 +158,11 @@ router.post('/:id/execute', async (req, res, next) => {
     res.json({ 
       data: {
         agentId: agent.id,
-        action,
-        ...result,
+        action: result.action,
+        success: result.success,
+        result: result.result,
+        tasksCreated: result.tasksCreated,
+        metadata: result.metadata,
         timestamp: new Date().toISOString(),
       }
     });

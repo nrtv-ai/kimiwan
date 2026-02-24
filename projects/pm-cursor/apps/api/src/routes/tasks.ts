@@ -73,8 +73,8 @@ router.post('/', async (req, res, next) => {
   try {
     const data = createTaskSchema.parse(req.body);
     
-    // TODO: Get creatorId from authenticated user
-    const creatorId = req.body.creatorId || '00000000-0000-0000-0000-000000000000';
+    // Get creatorId from authenticated user
+    const creatorId = req.user?.id || '00000000-0000-0000-0000-000000000000';
     
     const newTask: NewTask = {
       projectId: data.projectId,
@@ -90,7 +90,8 @@ router.post('/', async (req, res, next) => {
       labels: data.labels,
     };
     
-    const [task] = await db.insert(tasks).values(newTask).returning();
+    const result = await db.insert(tasks).values(newTask).returning();
+    const task = result[0];
     
     res.status(201).json({ data: task });
   } catch (error) {

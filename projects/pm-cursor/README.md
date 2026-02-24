@@ -4,13 +4,16 @@
 
 PM-Cursor is an intelligent project management platform designed for the AI era. Unlike traditional PM tools that treat AI as an afterthought, PM-Cursor is built from the ground up with AI agents as first-class citizens in the project workflow.
 
-## 🚀 Current Status: Foundation Phase (v0.1.0)
+## 🚀 Current Status: v0.2.0-alpha - Auth Phase
 
 ### What's Working
 - ✅ Full project/task/agent CRUD
 - ✅ AI-powered task breakdown, status summaries, and risk analysis
+- ✅ **JWT Authentication** - Register, Login, Protected Routes
+- ✅ **Password hashing** with bcrypt
+- ✅ **Automatic token refresh**
 - ✅ Real-time WebSocket infrastructure
-- ✅ Responsive React frontend
+- ✅ Responsive React frontend with auth pages
 - ✅ PostgreSQL + Drizzle ORM
 - ✅ Docker Compose for local dev
 
@@ -22,7 +25,9 @@ cd projects/pm-cursor
 
 # 2. Set up environment
 cp apps/api/.env.example apps/api/.env
-# Edit apps/api/.env and add your OPENAI_API_KEY
+# Edit apps/api/.env and add:
+# - OPENAI_API_KEY
+# - JWT_SECRET (generate a secure random string)
 
 # 3. Start with Docker (recommended)
 docker-compose up -d
@@ -32,18 +37,31 @@ docker-compose up -d
 docker-compose up -d postgres redis
 
 # Install dependencies
-npm install
+cd apps/api && npm install
+cd ../web && npm install
 
 # Run migrations
-npm run db:migrate
+cd ../api && npm run db:migrate
 
 # Start dev servers
-npm run dev
+# Terminal 1: API
+cd apps/api && npm run dev
+
+# Terminal 2: Web
+cd apps/web && npm run dev
 ```
 
 The app will be available at:
 - Web UI: http://localhost:5173
 - API: http://localhost:3001
+
+### Authentication Flow
+
+1. **Register** at `/register` or create a user via API
+2. **Login** at `/login` - receives JWT access & refresh tokens
+3. **Access protected routes** - tokens automatically attached to API requests
+4. **Token refresh** - happens automatically when access token expires
+5. **Logout** - clears tokens and redirects to login
 
 ### AI Features
 

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import { eq } from 'drizzle-orm';
 import { db, projects, NewProject } from '../db/index.js';
 import { AppError } from '../middleware/errorHandler.js';
 
@@ -78,12 +79,19 @@ router.patch('/:id', async (req, res, next) => {
     const updateSchema = createProjectSchema.partial();
     const data = updateSchema.parse(req.body);
     
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+    
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.visibility !== undefined) updateData.visibility = data.visibility;
+    if (data.startDate !== undefined) updateData.startDate = data.startDate ? new Date(data.startDate) : null;
+    if (data.targetDate !== undefined) updateData.targetDate = data.targetDate ? new Date(data.targetDate) : null;
+    
     const [project] = await db
       .update(projects)
-      .set({
-        ...data,
-        updatedAt: new Date(),
-      })
+      .set(updateData)
       .where(eq(projects.id, req.params.id))
       .returning();
     

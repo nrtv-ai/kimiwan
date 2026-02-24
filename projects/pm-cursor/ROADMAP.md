@@ -48,16 +48,25 @@
 
 ---
 
+## ✅ Completed in Latest Update
+
+### Authentication System (v0.2.0-alpha)
+- [x] JWT-based auth middleware (`apps/api/src/lib/auth.ts`)
+- [x] Password hashing with bcrypt
+- [x] Auth routes: `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/me`, `/api/v1/auth/refresh`
+- [x] Protected API routes with `authenticate` middleware
+- [x] React Auth Context (`apps/web/src/hooks/useAuth.tsx`)
+- [x] Login page with form validation
+- [x] Register page with password confirmation
+- [x] ProtectedRoute component for authenticated routes
+- [x] Automatic token refresh via axios interceptor
+- [x] User display in sidebar with logout button
+
+---
+
 ## 🚧 In Progress / Next Up
 
-### v0.2.0 - Authentication & Real-time
-
-#### Authentication
-- [ ] JWT-based auth middleware
-- [ ] Login/Register pages
-- [ ] Password hashing (bcrypt)
-- [ ] Protected routes
-- [ ] User context in frontend
+### v0.2.0 - Authentication & Real-time (Remaining)
 
 #### Real-time Features
 - [ ] WebSocket event broadcasting

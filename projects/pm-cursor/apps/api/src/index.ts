@@ -12,6 +12,8 @@ import { taskRoutes } from './routes/tasks.js';
 import { agentRoutes } from './routes/agents.js';
 import { userRoutes } from './routes/users.js';
 import { activityRoutes } from './routes/activities.js';
+import { authRoutes } from './routes/auth.js';
+import { authenticate } from './lib/auth.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -36,12 +38,15 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// API routes
-app.use('/api/v1/projects', projectRoutes);
-app.use('/api/v1/tasks', taskRoutes);
-app.use('/api/v1/agents', agentRoutes);
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/activities', activityRoutes);
+// Auth routes (public)
+app.use('/api/v1/auth', authRoutes);
+
+// Protected API routes
+app.use('/api/v1/projects', authenticate, projectRoutes);
+app.use('/api/v1/tasks', authenticate, taskRoutes);
+app.use('/api/v1/agents', authenticate, agentRoutes);
+app.use('/api/v1/users', authenticate, userRoutes);
+app.use('/api/v1/activities', authenticate, activityRoutes);
 
 // Error handling
 app.use(errorHandler);
