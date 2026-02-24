@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  a2a-coop:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      - PORT=8080
+      - NODE_ENV=production
+      - MAX_MESSAGE_HISTORY=${MAX_MESSAGE_HISTORY:-1000}
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-60000}
+      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-100}
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8080/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - a2a-coop-network
+
+  # Optional: Redis for persistent storage (future feature)
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis-data:/data
+  #   restart: unless-stopped
+  #   networks:
+  #     - a2a-coop-network
+
+networks:
+  a2a-coop-network:
+    driver: bridge
+
+# volumes:
+#   redis-data:
