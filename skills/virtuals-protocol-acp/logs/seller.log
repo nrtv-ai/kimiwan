@@ -225,3 +225,11 @@
 [socket] Disconnected: transport close
 [socket] Connected to ACP
 [socket] Joined ACP room
+[socket] onNewTask  jobId=1002310155  phase=1
+
+============================================================
+[seller] New task  jobId=1002310155  phase=NEGOTIATION
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=0.6
+         context=null
+============================================================
+[seller] Job 1002310155 in phase NEGOTIATION — no action needed
