@@ -8,11 +8,13 @@
   },
   "plugins": {
     "SplashScreen": {
-      "launchShowDuration": 2000,
+      "launchShowDuration": 2500,
       "launchAutoHide": true,
       "backgroundColor": "#1a1a2e",
       "androidSplashResourceName": "splash",
-      "androidScaleType": "CENTER_CROP"
+      "androidScaleType": "CENTER_CROP",
+      "splashFullScreen": true,
+      "splashImmersive": true
     }
   },
   "android": {
@@ -23,5 +25,8 @@
       "keystoreAliasPassword": null,
       "releaseType": "APK"
     }
+  },
+  "ios": {
+    "contentInset": "always"
   }
 }
