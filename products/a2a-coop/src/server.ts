@@ -3,6 +3,9 @@ import { createServer, IncomingMessage, ServerResponse } from 'http';
 import { A2ACoop } from './index';
 import { WebSocketRateLimiter } from './rateLimiter';
 import { A2ACoopRestApi } from './restApi';
+import { AuthManager, AuthConfig, AuthContext, createAuthConfigFromEnv } from './auth';
+import { MetricsCollector, createMetricsCollector } from './metrics';
+import { Storage, createStorage } from './storage';
 import {
   AgentId,
   TaskId,
@@ -60,6 +63,12 @@ export interface ServerOptions {
   rateLimitMaxRequests?: number;
   enableHealthCheck?: boolean;
   enableRestApi?: boolean;
+  /** Authentication configuration */
+  auth?: AuthConfig;
+  /** Storage configuration */
+  storage?: { type?: 'memory' | 'redis'; redis?: { url?: string; host?: string; port?: number; password?: string } };
+  /** Enable metrics endpoint */
+  enableMetrics?: boolean;
 }
 
 /**
@@ -111,6 +120,9 @@ export class A2ACoopServer {
   private restApi?: A2ACoopRestApi;
   private options: ServerOptions;
   private startTime: number = Date.now();
+  private authManager: AuthManager;
+  private metrics: MetricsCollector;
+  private storage?: Storage;
 
   constructor(
     private port: number = 8080,
@@ -121,8 +133,20 @@ export class A2ACoopServer {
       enableRateLimiting: true,
       enableHealthCheck: true,
       enableRestApi: true,
+      enableMetrics: true,
       ...options,
     };
+
+    // Initialize auth manager
+    this.authManager = new AuthManager(this.options.auth || createAuthConfigFromEnv());
+
+    // Initialize metrics
+    this.metrics = createMetricsCollector();
+
+    // Initialize storage if configured
+    if (this.options.storage) {
+      this.storage = createStorage(this.options.storage);
+    }
 
     this.coop = new A2ACoop({ maxMessageHistory: this.options.maxMessageHistory });
     
@@ -150,22 +174,39 @@ export class A2ACoopServer {
   /**
    * Start the server
    */
-  start(): void {
-    this.httpServer.listen(this.port, () => {
-      console.log(`A2A-Coop server listening on port ${this.port}`);
-      if (this.options.enableHealthCheck) {
-        console.log(`Health check available at http://localhost:${this.port}/health`);
-      }
-      if (this.options.enableRestApi) {
-        console.log(`REST API available at http://localhost:${this.port}/api`);
-      }
+  async start(): Promise<void> {
+    // Connect to storage if configured
+    if (this.storage) {
+      await this.storage.connect();
+      console.log('Connected to storage');
+    }
+
+    return new Promise((resolve) => {
+      this.httpServer.listen(this.port, () => {
+        console.log(`A2A-Coop server listening on port ${this.port}`);
+        if (this.options.enableHealthCheck) {
+          console.log(`Health check available at http://localhost:${this.port}/health`);
+        }
+        if (this.options.enableRestApi) {
+          console.log(`REST API available at http://localhost:${this.port}/api`);
+        }
+        if (this.options.enableMetrics) {
+          console.log(`Metrics available at http://localhost:${this.port}/metrics`);
+        }
+        resolve();
+      });
     });
   }
 
   /**
    * Stop the server
    */
-  stop(): Promise<void> {
+  async stop(): Promise<void> {
+    // Disconnect from storage
+    if (this.storage) {
+      await this.storage.disconnect();
+    }
+
     return new Promise((resolve) => {
       // Close all WebSocket connections
       for (const [ws] of this.clients) {
@@ -189,6 +230,7 @@ export class A2ACoopServer {
    */
   getHealthStatus(): HealthStatus {
     const status = this.coop.getStatus();
+    const metrics = this.metrics.getMetrics();
     return {
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -199,10 +241,13 @@ export class A2ACoopServer {
         registry: 'ok',
         messageBus: 'ok',
         taskOrchestrator: 'ok',
+        storage: this.storage?.isConnected() ? 'connected' : 'memory',
       },
       metrics: {
         ...status,
         connections: this.clients.size,
+        requests: metrics.requests,
+        tasks: metrics.tasks,
       },
     };
   }
@@ -236,6 +281,15 @@ export class A2ACoopServer {
       return;
     }
 
+    // Metrics endpoint (Prometheus format)
+    if (url === '/metrics' && this.options.enableMetrics) {
+      const prometheusMetrics = this.metrics.getPrometheusMetrics();
+      res.setHeader('Content-Type', 'text/plain');
+      res.writeHead(200);
+      res.end(prometheusMetrics);
+      return;
+    }
+
     // Root endpoint - basic info
     if (url === '/') {
       res.setHeader('Content-Type', 'application/json');
@@ -248,6 +302,7 @@ export class A2ACoopServer {
           websocket: `ws://localhost:${this.port}`,
           health: `http://localhost:${this.port}/health`,
           api: `http://localhost:${this.port}/api`,
+          metrics: `http://localhost:${this.port}/metrics`,
         },
       }, null, 2));
       return;
