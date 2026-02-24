@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hate Beat</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow: hidden;
+        }
+        .screen {
+            display: none;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .screen.active { display: flex; flex-direction: column; }
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px #e94560;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e94560;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        input::placeholder, textarea::placeholder {
+            color: #666;
+        }
+        button {
+            background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(233, 69, 96, 0.5);
+        }
+        button:active { transform: scale(0.95); }
+        .hate-scale {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .hate-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #e94560;
+            background: transparent;
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .hate-btn.selected {
+            background: #e94560;
+            transform: scale(1.2);
+        }
+        #gameCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        .ui-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .hp-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e94560 0%, #ff6b6b 100%);
+            transition: width 0.3s;
+        }
+        .word-counter {
+            text-align: center;
+            font-size: 1.2rem;
+        }
+        .victory-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .victory-screen.active { display: flex; }
+        .victory-text {
+            font-size: 3rem;
+            color: #4ecca3;
+            text-shadow: 0 0 30px #4ecca3;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Screen 1: Task Input -->
+    <div id="screen1" class="screen active">
+        <h1>HATE BEAT</h1>
+        <p class="subtitle">What task do you absolutely hate?</p>
+        <input type="text" id="taskInput" placeholder="e.g., doing taxes, cleaning dishes..." maxlength="50">
+        <button onclick="goToScreen2()">Continue →</button>
+    </div>
+
+    <!-- Screen 2: Hate Level -->
+    <div id="screen2" class="screen">
+        <h1>HATE BEAT</h1>
+        <p class="subtitle">How much do you hate <span id="taskName"></span>?</p>
+        <div class="hate-scale">
+            <button class="hate-btn" onclick="selectHate(1)">1</button>
+            <button class="hate-btn" onclick="selectHate(2)">2</button>
+            <button class="hate-btn" onclick="selectHate(3)">3</button>
+            <button class="hate-btn" onclick="selectHate(4)">4</button>
+            <button class="hate-btn" onclick="selectHate(5)">5</button>
+            <button class="hate-btn" onclick="selectHate(6)">6</button>
+            <button class="hate-btn" onclick="selectHate(7)">7</button>
+            <button class="hate-btn" onclick="selectHate(8)">8</button>
+            <button class="hate-btn" onclick="selectHate(9)">9</button>
+            <button class="hate-btn" onclick="selectHate(10)">10</button>
+        </div>
+        <p id="hateLabel" style="text-align: center; color: #888; margin: 20px 0;"></p>
+        <button onclick="goToScreen3()" id="continueBtn2" style="opacity: 0.5; pointer-events: none;">Continue →</button>
+    </div>
+
+    <!-- Screen 3: Describe Hate -->
+    <div id="screen3" class="screen">
+        <h1>HATE BEAT</h1>
+        <p class="subtitle">Describe how much you hate it with words:</p>
+        <textarea id="hateWords" rows="4" placeholder="e.g., boring tedious painful soul-crushing miserable awful..." maxlength="200"></textarea>
+        <button onclick="startBattle()">BATTLE!</button>
+    </div>
+
+    <!-- Game Screen -->
+    <canvas id="gameCanvas"></canvas>
+    <div class="ui-overlay">
+        <div class="hp-bar">
+            <div class="hp-fill" id="hpFill" style="width: 100%"></div>
+        </div>
+        <div class="word-counter">
+            <span id="wordsRemaining">0</span> words remaining
+        </div>
+    </div>
+
+    <!-- Victory Screen -->
+    <div id="victoryScreen" class="victory-screen">
+        <div class="victory-text">VICTORY!</div>
+        <p>You defeated <span id="victoryTask"></span>!</p>
+        <button onclick="resetGame()" style="margin-top: 30px;">Beat Another Task</button>
+    </div>
+
+    <script>
+        // Game State
+        let gameState = {
+            task: '',
+            hateLevel: 0,
+            words: [],
+            enemies: [],
+            wordsDestroyed: 0,
+            totalWords: 0
+        };
+
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let animationId;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Navigation
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function goToScreen2() {
+            const task = document.getElementById('taskInput').value.trim();
+            if (!task) return;
+            gameState.task = task;
+            document.getElementById('taskName').textContent = task;
+            showScreen('screen2');
+        }
+
+        let selectedHate = 0;
+        function selectHate(level) {
+            selectedHate = level;
+            document.querySelectorAll('.hate-btn').forEach((btn, i) => {
+                btn.classList.toggle('selected', i < level);
+            });
+            const labels = ['', 'Mild annoyance', 'Slightly irritating', 'Bothersome', 
+                          'Frustrating', 'Very annoying', 'Hate it', 'Strongly despise',
+                          'Absolutely loathe', 'Pure rage', 'EXISTENTIAL DREAD'];
+            document.getElementById('hateLabel').textContent = labels[level];
+            document.getElementById('continueBtn2').style.opacity = '1';
+            document.getElementById('continueBtn2').style.pointerEvents = 'auto';
+        }
+
+        function goToScreen3() {
+            if (!selectedHate) return;
+            gameState.hateLevel = selectedHate;
+            showScreen('screen3');
+        }
+
+        // Word parsing - LOCAL ONLY, no AI
+        function parseWords(text) {
+            return text.toLowerCase()
+                .replace(/[^a-z\s]/g, '')
+                .split(/\s+/)
+                .filter(w => w.length > 2)
+                .slice(0, 20); // Max 20 words
+        }
+
+        // Enemy class
+        class WordEnemy {
+            constructor(word, index, total) {
+                this.word = word;
+                this.hp = Math.ceil(word.length / 2); // Longer words = more HP
+                this.maxHp = this.hp;
+                
+                // Position - spawn from edges
+                const side = Math.floor(Math.random() * 4);
+                switch(side) {
+                    case 0: this.x = Math.random() * canvas.width; this.y = -50; break;
+                    case 1: this.x = canvas.width + 50; this.y = Math.random() * canvas.height; break;
+                    case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 50; break;
+                    case 3: this.x = -50; this.y = Math.random() * canvas.height; break;
+                }
+                
+                // Speed based on hate level
+                const baseSpeed = 0.5 + (gameState.hateLevel * 0.3);
+                const angle = Math.atan2(canvas.height/2 - this.y, canvas.width/2 - this.x);
+                this.vx = Math.cos(angle) * baseSpeed * (0.8 + Math.random() * 0.4);
+                this.vy = Math.sin(angle) * baseSpeed * (0.8 + Math.random() * 0.4);
+                
+                this.size = 20 + word.length * 3;
+                this.color = `hsl(${Math.random() * 60}, 80%, 60%)`; // Red-orange range
+                this.shake = 0;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Bounce off edges
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+                
+                if (this.shake > 0) this.shake--;
+            }
+
+            draw() {
+                ctx.save();
+                
+                // Shake effect when damaged
+                const shakeX = this.shake > 0 ? (Math.random() - 0.5) * 10 : 0;
+                const shakeY = this.shake > 0 ? (Math.random() - 0.5) * 10 : 0;
+                
+                // Glow
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 20;
+                
+                // Word text
+                ctx.font = `bold ${this.size}px sans-serif`;
+                ctx.fillStyle = this.color;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.word, this.x + shakeX, this.y + shakeY);
+                
+                // HP bar above word
+                const barWidth = 60;
+                const barHeight = 6;
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(this.x - barWidth/2, this.y - this.size/2 - 15, barWidth, barHeight);
+                ctx.fillStyle = '#4ecca3';
+                ctx.fillRect(this.x - barWidth/2, this.y - this.size/2 - 15, barWidth * (this.hp/this.maxHp), barHeight);
+                
+                ctx.restore();
+            }
+
+            checkHit(x, y) {
+                const dist = Math.hypot(x - this.x, y - this.y);
+                return dist < this.size * 2;
+            }
+
+            damage() {
+                this.hp--;
+                this.shake = 10;
+                return this.hp <= 0;
+            }
+        }
+
+        function startBattle() {
+            const hateText = document.getElementById('hateWords').value.trim();
+            if (!hateText) return;
+            
+            gameState.words = parseWords(hateText);
+            gameState.totalWords = gameState.words.length;
+            gameState.wordsDestroyed = 0;
+            
+            // Create enemies
+            gameState.enemies = gameState.words.map((word, i) => 
+                new WordEnemy(word, i, gameState.words.length)
+            );
+            
+            updateUI();
+            showScreen('gameCanvas');
+            document.querySelector('.ui-overlay').style.display = 'block';
+            
+            gameLoop();
+        }
+
+        function updateUI() {
+            const remaining = gameState.enemies.length;
+            const percent = (remaining / gameState.totalWords) * 100;
+            document.getElementById('hpFill').style.width = percent + '%';
+            document.getElementById('wordsRemaining').textContent = remaining;
+        }
+
+        function gameLoop() {
+            ctx.fillStyle = 'rgba(26, 26, 46, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            gameState.enemies.forEach(enemy => {
+                enemy.update();
+                enemy.draw();
+            });
+            
+            // Check victory
+            if (gameState.enemies.length === 0) {
+                victory();
+                return;
+            }
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // Touch/Click handling
+        canvas.addEventListener('click', handleInput);
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            handleInput({ clientX: touch.clientX, clientY: touch.clientY });
+        });
+
+        function handleInput(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+                if (gameState.enemies[i].checkHit(x, y)) {
+                    if (gameState.enemies[i].damage()) {
+                        // Enemy destroyed
+                        createParticles(gameState.enemies[i].x, gameState.enemies[i].y, gameState.enemies[i].color);
+                        gameState.enemies.splice(i, 1);
+                    }
+                    updateUI();
+                    break;
+                }
+            }
+        }
+
+        // Particle effects
+        let particles = [];
+        function createParticles(x, y, color) {
+            for (let i = 0; i < 10; i++) {
+                particles.push({
+                    x, y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    life: 30,
+                    color
+                });
+            }
+        }
+
+        function victory() {
+            cancelAnimationFrame(animationId);
+            document.getElementById('victoryTask').textContent = gameState.task;
+            document.getElementById('victoryScreen').classList.add('active');
+        }
+
+        function resetGame() {
+            document.getElementById('victoryScreen').classList.remove('active');
+            document.querySelector('.ui-overlay').style.display = 'none';
+            gameState = { task: '', hateLevel: 0, words: [], enemies: [], wordsDestroyed: 0, totalWords: 0 };
+            document.getElementById('taskInput').value = '';
+            document.getElementById('hateWords').value = '';
+            document.querySelectorAll('.hate-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('hateLabel').textContent = '';
+            document.getElementById('continueBtn2').style.opacity = '0.5';
+            document.getElementById('continueBtn2').style.pointerEvents = 'none';
+            selectedHate = 0;
+            showScreen('screen1');
+        }
+    </script>
+</body>
+</html>
