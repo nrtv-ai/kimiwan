@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { eq, desc } from 'drizzle-orm';
-import { db, comments, NewComment } from '../db/index.js';
+import { eq, and, desc } from 'drizzle-orm';
+import { db, comments, users, tasks } from '../db/index.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { io } from '../index.js';
 
@@ -14,7 +14,7 @@ const createCommentSchema = z.object({
 });
 
 // Helper to broadcast comment events
-const broadcastCommentEvent = (event: string, comment: any, projectId: string) => {
+const broadcastCommentEvent = (event: string, comment: Record<string, any>, projectId: string) => {
   if (projectId) {
     io.to(`project:${projectId}`).emit(`comment:${event}`, comment);
   }
@@ -25,20 +25,25 @@ router.get('/', async (req, res, next) => {
   try {
     const { taskId } = req.params;
     
-    const taskComments = await db.query.comments.findMany({
-      where: (comments, { eq }) => eq(comments.taskId, taskId),
-      with: {
+    const result = await db
+      .select({
+        comment: comments,
         author: {
-          columns: {
-            id: true,
-            name: true,
-            email: true,
-            avatarUrl: true,
-          },
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          avatarUrl: users.avatarUrl,
         },
-      },
-      orderBy: [desc(comments.createdAt)],
-    });
+      })
+      .from(comments)
+      .leftJoin(users, eq(comments.authorId, users.id))
+      .where(eq(comments.taskId, taskId))
+      .orderBy(desc(comments.createdAt));
+    
+    const taskComments = result.map(r => ({
+      ...(r.comment as Record<string, any>),
+      author: r.author,
+    }));
     
     res.json({ data: taskComments });
   } catch (error) {
@@ -59,19 +64,19 @@ router.post('/', async (req, res, next) => {
     }
     
     // Get task to find projectId for broadcasting
-    const task = await db.query.tasks.findFirst({
-      where: (tasks, { eq }) => eq(tasks.id, taskId),
-      columns: {
-        id: true,
-        projectId: true,
-      },
-    });
+    const taskResult = await db
+      .select({ projectId: tasks.projectId })
+      .from(tasks)
+      .where(eq(tasks.id, taskId))
+      .limit(1);
     
-    if (!task) {
+    if (!taskResult.length) {
       throw new AppError(404, 'Task not found', 'NOT_FOUND');
     }
     
-    const newComment: NewComment = {
+    const projectId = taskResult[0].projectId;
+    
+    const newComment = {
       taskId,
       authorId,
       authorType: 'user',
@@ -81,23 +86,25 @@ router.post('/', async (req, res, next) => {
     
     const [comment] = await db.insert(comments).values(newComment).returning();
     
-    // Fetch the complete comment with author info
-    const commentWithAuthor = await db.query.comments.findFirst({
-      where: (comments, { eq }) => eq(comments.id, comment.id),
-      with: {
-        author: {
-          columns: {
-            id: true,
-            name: true,
-            email: true,
-            avatarUrl: true,
-          },
-        },
-      },
-    });
+    // Fetch author info
+    const author = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        avatarUrl: users.avatarUrl,
+      })
+      .from(users)
+      .where(eq(users.id, authorId))
+      .limit(1);
+    
+    const commentWithAuthor = {
+      ...comment,
+      author: author[0] || null,
+    };
     
     // Broadcast comment creation event
-    broadcastCommentEvent('created', commentWithAuthor, task.projectId);
+    broadcastCommentEvent('created', commentWithAuthor as any, projectId);
     
     res.status(201).json({ data: commentWithAuthor });
   } catch (error) {
@@ -120,15 +127,17 @@ router.patch('/:id', async (req, res, next) => {
     }
     
     // Check if comment exists and belongs to user
-    const existingComment = await db.query.comments.findFirst({
-      where: (comments, { eq }) => eq(comments.id, id),
-    });
+    const existingComment = await db
+      .select()
+      .from(comments)
+      .where(and(eq(comments.id, id), eq(comments.taskId, taskId)))
+      .limit(1);
     
-    if (!existingComment) {
+    if (!existingComment.length) {
       throw new AppError(404, 'Comment not found', 'NOT_FOUND');
     }
     
-    if (existingComment.authorId !== authorId) {
+    if ((existingComment[0] as Record<string, any>).authorId !== authorId) {
       throw new AppError(403, 'You can only edit your own comments', 'FORBIDDEN');
     }
     
@@ -142,27 +151,30 @@ router.patch('/:id', async (req, res, next) => {
       .returning();
     
     // Get task for broadcasting
-    const task = await db.query.tasks.findFirst({
-      where: (tasks, { eq }) => eq(tasks.id, taskId),
-      columns: { projectId: true },
-    });
+    const taskResult = await db
+      .select({ projectId: tasks.projectId })
+      .from(tasks)
+      .where(eq(tasks.id, taskId))
+      .limit(1);
     
-    // Fetch complete comment with author
-    const commentWithAuthor = await db.query.comments.findFirst({
-      where: (comments, { eq }) => eq(comments.id, comment.id),
-      with: {
-        author: {
-          columns: {
-            id: true,
-            name: true,
-            email: true,
-            avatarUrl: true,
-          },
-        },
-      },
-    });
+    // Fetch author info
+    const author = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        avatarUrl: users.avatarUrl,
+      })
+      .from(users)
+      .where(eq(users.id, authorId))
+      .limit(1);
     
-    broadcastCommentEvent('updated', commentWithAuthor, task?.projectId || '');
+    const commentWithAuthor = {
+      ...comment,
+      author: author[0] || null,
+    };
+    
+    broadcastCommentEvent('updated', commentWithAuthor as any, taskResult[0]?.projectId || '');
     
     res.json({ data: commentWithAuthor });
   } catch (error) {
@@ -181,28 +193,31 @@ router.delete('/:id', async (req, res, next) => {
     }
     
     // Check if comment exists
-    const existingComment = await db.query.comments.findFirst({
-      where: (comments, { eq }) => eq(comments.id, id),
-    });
+    const existingComment = await db
+      .select()
+      .from(comments)
+      .where(and(eq(comments.id, id), eq(comments.taskId, taskId)))
+      .limit(1);
     
-    if (!existingComment) {
+    if (!existingComment.length) {
       throw new AppError(404, 'Comment not found', 'NOT_FOUND');
     }
     
     // Only allow author or admin to delete
-    if (existingComment.authorId !== authorId && req.user?.role !== 'admin') {
+    if ((existingComment[0] as Record<string, any>).authorId !== authorId && req.user?.role !== 'admin') {
       throw new AppError(403, 'You can only delete your own comments', 'FORBIDDEN');
     }
     
     // Get task for broadcasting before deletion
-    const task = await db.query.tasks.findFirst({
-      where: (tasks, { eq }) => eq(tasks.id, taskId),
-      columns: { projectId: true },
-    });
+    const taskResult = await db
+      .select({ projectId: tasks.projectId })
+      .from(tasks)
+      .where(eq(tasks.id, taskId))
+      .limit(1);
     
     await db.delete(comments).where(eq(comments.id, id));
     
-    broadcastCommentEvent('deleted', { id, taskId }, task?.projectId || '');
+    broadcastCommentEvent('deleted', { id, taskId } as any, taskResult[0]?.projectId || '');
     
     res.status(204).send();
   } catch (error) {

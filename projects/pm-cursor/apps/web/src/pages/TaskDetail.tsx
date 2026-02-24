@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -17,6 +17,11 @@ import {
   Circle,
   Clock4,
   X,
+  Upload,
+  FileText,
+  Image,
+  Download,
+  File,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useSocket } from '../hooks/useSocket';
@@ -63,6 +68,22 @@ interface Comment {
   };
 }
 
+interface Attachment {
+  id: string;
+  name: string;
+  url: string;
+  size: number;
+  mimeType: string;
+  taskId: string;
+  uploadedBy: string;
+  createdAt: string;
+  uploadedByUser?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
 const statusOptions = [
   { value: 'backlog', label: 'Backlog', icon: Circle, color: 'text-gray-500' },
   { value: 'todo', label: 'To Do', icon: Circle, color: 'text-blue-500' },
@@ -83,7 +104,7 @@ export function TaskDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { joinProject, leaveProject, onTaskUpdated, onTaskDeleted, onCommentCreated, onCommentUpdated, onCommentDeleted } = useSocket();
+  const { joinProject, leaveProject, onTaskUpdated, onTaskDeleted, onCommentCreated, onCommentUpdated, onCommentDeleted, onAttachmentCreated, onAttachmentDeleted } = useSocket();
   
   const [isEditing, setIsEditing] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
@@ -92,6 +113,8 @@ export function TaskDetail() {
   const [editForm, setEditForm] = useState<Partial<Task>>({});
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentContent, setEditCommentContent] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: task, isLoading } = useQuery({
     queryKey: ['task', id],
@@ -106,6 +129,15 @@ export function TaskDetail() {
     queryKey: ['task-comments', id],
     queryFn: async (): Promise<Comment[]> => {
       const res = await api.get(`/tasks/${id}/comments`);
+      return res.data.data || [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: attachments, isLoading: attachmentsLoading } = useQuery({
+    queryKey: ['task-attachments', id],
+    queryFn: async (): Promise<Attachment[]> => {
+      const res = await api.get(`/tasks/${id}/attachments`);
       return res.data.data || [];
     },
     enabled: !!id,
@@ -185,6 +217,29 @@ export function TaskDetail() {
     };
   }, [id, onCommentCreated, onCommentUpdated, onCommentDeleted, queryClient]);
 
+  // Listen for real-time attachment updates
+  useEffect(() => {
+    const unsubscribeCreated = onAttachmentCreated((newAttachment) => {
+      if (newAttachment.taskId === id) {
+        queryClient.invalidateQueries({ queryKey: ['task-attachments', id] });
+      }
+    });
+
+    const unsubscribeDeleted = onAttachmentDeleted((deletedAttachment) => {
+      if (deletedAttachment.taskId === id) {
+        queryClient.setQueryData(['task-attachments', id], (old: Attachment[] | undefined) => {
+          if (!old) return old;
+          return old.filter(a => a.id !== deletedAttachment.id);
+        });
+      }
+    });
+
+    return () => {
+      unsubscribeCreated();
+      unsubscribeDeleted();
+    };
+  }, [id, onAttachmentCreated, onAttachmentDeleted, queryClient]);
+
   const updateMutation = useMutation({
     mutationFn: async (data: Partial<Task>) => {
       const res = await api.patch(`/tasks/${id}`, data);
@@ -238,6 +293,43 @@ export function TaskDetail() {
       queryClient.invalidateQueries({ queryKey: ['task-comments', id] });
     },
   });
+
+  const uploadAttachmentMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await api.post(`/tasks/${id}/attachments`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return res.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['task-attachments', id] });
+      setIsUploading(false);
+    },
+    onError: () => {
+      setIsUploading(false);
+    },
+  });
+
+  const deleteAttachmentMutation = useMutation({
+    mutationFn: async (attachmentId: string) => {
+      await api.delete(`/tasks/${id}/attachments/${attachmentId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['task-attachments', id] });
+    },
+  });
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIsUploading(true);
+      uploadAttachmentMutation.mutate(file);
+    }
+  };
 
   useEffect(() => {
     if (task) {
@@ -483,6 +575,69 @@ export function TaskDetail() {
               )}
             </div>
           </div>
+
+          {/* Attachments Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Paperclip className="w-5 h-5" />
+              Attachments ({attachments?.length || 0})
+            </h2>
+
+            <div className="space-y-4">
+              {/* Upload Button */}
+              <div>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                >
+                  {isUploading ? (
+                    <>
+                      <div className="animate-spin w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      Upload File
+                    </>
+                  )}
+                </button>
+                <p className="text-xs text-gray-500 mt-2">
+                  Max file size: 10MB. Supported: images, PDFs, documents, JSON, ZIP
+                </p>
+              </div>
+
+              {/* Attachments List */}
+              {attachmentsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
+                </div>
+              ) : attachments && attachments.length > 0 ? (
+                <div className="space-y-2">
+                  {attachments.map((attachment) => (
+                    <AttachmentItem
+                      key={attachment.id}
+                      attachment={attachment}
+                      onDelete={() => {
+                        if (confirm('Delete this attachment?')) {
+                          deleteAttachmentMutation.mutate(attachment.id);
+                        }
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-4">No attachments yet</p>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Right Column - Task Properties */}
@@ -620,6 +775,68 @@ export function TaskDetail() {
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Helper function to format file size
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+// Helper function to get file icon based on mime type
+function getFileIcon(mimeType: string) {
+  if (mimeType.startsWith('image/')) return Image;
+  if (mimeType === 'application/pdf') return FileText;
+  return File;
+}
+
+// Attachment Item Component
+interface AttachmentItemProps {
+  attachment: Attachment;
+  onDelete: () => void;
+}
+
+function AttachmentItem({ attachment, onDelete }: AttachmentItemProps) {
+  const Icon = getFileIcon(attachment.mimeType);
+  const isImage = attachment.mimeType.startsWith('image/');
+  
+  return (
+    <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 group">
+      <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
+        <Icon className="w-5 h-5 text-indigo-600" />
+      </div>
+      
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-gray-900 truncate">
+          {attachment.name}
+        </p>
+        <p className="text-xs text-gray-500">
+          {formatFileSize(attachment.size)} • Uploaded by {attachment.uploadedByUser?.name || 'Unknown'}
+        </p>
+      </div>
+      
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <a
+          href={`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${attachment.url}`}
+          download={attachment.name}
+          className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded"
+          title="Download"
+        >
+          <Download className="w-4 h-4" />
+        </a>
+        <button
+          onClick={onDelete}
+          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
+          title="Delete"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

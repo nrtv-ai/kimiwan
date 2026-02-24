@@ -1,5 +1,4 @@
 import { pgTable, uuid, varchar, timestamp, jsonb, text, integer, boolean, pgEnum } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
 
 // Enums
 export const taskStatusEnum = pgEnum('task_status', ['backlog', 'todo', 'in_progress', 'in_review', 'done', 'cancelled']);
@@ -60,7 +59,7 @@ export const projects = pgTable('projects', {
 export const tasks = pgTable('tasks', {
   id: uuid('id').primaryKey().defaultRandom(),
   projectId: uuid('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
-  parentId: uuid('parent_id').references(() => tasks.id, { onDelete: 'cascade' }),
+  parentId: uuid('parent_id').references((): any => tasks.id, { onDelete: 'cascade' }),
   title: varchar('title', { length: 500 }).notNull(),
   description: text('description'),
   status: taskStatusEnum('status').notNull().default('backlog'),
@@ -114,7 +113,7 @@ export const comments = pgTable('comments', {
   authorId: uuid('author_id').notNull().references(() => users.id),
   authorType: varchar('author_type', { length: 50 }).notNull().default('user'),
   content: text('content').notNull(),
-  parentId: uuid('parent_id').references(() => comments.id, { onDelete: 'cascade' }),
+  parentId: uuid('parent_id').references((): any => comments.id, { onDelete: 'cascade' }),
   editedAt: timestamp('edited_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
@@ -131,18 +130,6 @@ export const attachments = pgTable('attachments', {
   metadata: jsonb('metadata').default({}),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
-
-// Relations
-export const attachmentsRelations = relations(attachments, ({ one }) => ({
-  uploadedByUser: one(users, {
-    fields: [attachments.uploadedBy],
-    references: [users.id],
-  }),
-  task: one(tasks, {
-    fields: [attachments.taskId],
-    references: [tasks.id],
-  }),
-}));
 
 // Activities table (audit log)
 export const activities = pgTable('activities', {

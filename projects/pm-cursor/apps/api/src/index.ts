@@ -16,6 +16,8 @@ import { authRoutes } from './routes/auth.js';
 import { commentRoutes } from './routes/comments.js';
 import { attachmentRoutes } from './routes/attachments.js';
 import { authenticate } from './lib/auth.js';
+import path from 'path';
+import fs from 'fs';
 
 const app = express();
 const httpServer = createServer(app);
@@ -26,6 +28,12 @@ const io = new Server(httpServer, {
   }
 });
 
+// Create uploads directory if it doesn't exist
+const uploadsDir = process.env.UPLOAD_DIR || './uploads';
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 // Middleware
 app.use(helmet());
 app.use(cors({
@@ -34,6 +42,9 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(requestLogger);
+
+// Static files for uploads
+app.use('/uploads', express.static(path.resolve(uploadsDir)));
 
 // Health check
 app.get('/health', (_req, res) => {

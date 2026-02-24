@@ -132,6 +132,27 @@ export function useSocket() {
     return () => {};
   }, []);
 
+  // Attachment events
+  const onAttachmentCreated = useCallback((handler: AttachmentEventHandler) => {
+    if (socketRef.current) {
+      socketRef.current.on('attachment:created', handler);
+      return () => {
+        socketRef.current?.off('attachment:created', handler);
+      };
+    }
+    return () => {};
+  }, []);
+
+  const onAttachmentDeleted = useCallback((handler: AttachmentEventHandler) => {
+    if (socketRef.current) {
+      socketRef.current.on('attachment:deleted', handler);
+      return () => {
+        socketRef.current?.off('attachment:deleted', handler);
+      };
+    }
+    return () => {};
+  }, []);
+
   return {
     socket: socketRef.current,
     joinProject,
@@ -142,5 +163,7 @@ export function useSocket() {
     onCommentCreated,
     onCommentUpdated,
     onCommentDeleted,
+    onAttachmentCreated,
+    onAttachmentDeleted,
   };
 }

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { eq } from 'drizzle-orm';
-import { db, tasks, NewTask } from '../db/index.js';
+import { eq, desc } from 'drizzle-orm';
+import { db, tasks, users, comments, attachments } from '../db/index.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { io } from '../index.js';
 
@@ -34,15 +34,24 @@ router.get('/', async (req, res, next) => {
   try {
     const { projectId } = req.query;
     
-    const query = db.query.tasks.findMany({
-      with: {
-        assignee: true,
-        creator: true,
-      },
-      orderBy: (tasks, { desc }) => [desc(tasks.createdAt)],
-    });
+    const result = await db
+      .select({
+        task: tasks,
+        assignee: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          avatarUrl: users.avatarUrl,
+        },
+      })
+      .from(tasks)
+      .leftJoin(users, eq(tasks.assigneeId, users.id))
+      .orderBy(desc(tasks.createdAt));
     
-    const allTasks = await query;
+    const allTasks = result.map(r => ({
+      ...r.task,
+      assignee: r.assignee,
+    }));
     
     // Filter by project if specified
     const filteredTasks = projectId 
@@ -58,19 +67,57 @@ router.get('/', async (req, res, next) => {
 // GET /api/v1/tasks/:id
 router.get('/:id', async (req, res, next) => {
   try {
-    const task = await db.query.tasks.findFirst({
-      where: (tasks, { eq }) => eq(tasks.id, req.params.id),
-      with: {
-        assignee: true,
-        creator: true,
-        comments: true,
-        attachments: true,
-      },
-    });
+    // Get task with assignee and creator
+    const taskResult = await db
+      .select({
+        task: tasks,
+        assignee: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          avatarUrl: users.avatarUrl,
+        },
+      })
+      .from(tasks)
+      .leftJoin(users, eq(tasks.assigneeId, users.id))
+      .where(eq(tasks.id, req.params.id))
+      .limit(1);
     
-    if (!task) {
+    if (!taskResult.length) {
       throw new AppError(404, 'Task not found', 'NOT_FOUND');
     }
+    
+    // Get creator info
+    const creator = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        avatarUrl: users.avatarUrl,
+      })
+      .from(users)
+      .where(eq(users.id, taskResult[0].task.creatorId))
+      .limit(1);
+    
+    // Get comments count
+    const commentsCount = await db
+      .select({ count: comments.id })
+      .from(comments)
+      .where(eq(comments.taskId, req.params.id));
+    
+    // Get attachments count
+    const attachmentsCount = await db
+      .select({ count: attachments.id })
+      .from(attachments)
+      .where(eq(attachments.taskId, req.params.id));
+    
+    const task = {
+      ...taskResult[0].task,
+      assignee: taskResult[0].assignee,
+      creator: creator[0] || null,
+      commentsCount: commentsCount.length,
+      attachmentsCount: attachmentsCount.length,
+    };
     
     res.json({ data: task });
   } catch (error) {
@@ -86,7 +133,7 @@ router.post('/', async (req, res, next) => {
     // Get creatorId from authenticated user
     const creatorId = req.user?.id || '00000000-0000-0000-0000-000000000000';
     
-    const newTask: NewTask = {
+    const newTask = {
       projectId: data.projectId,
       parentId: data.parentId || null,
       title: data.title,
@@ -118,17 +165,19 @@ router.patch('/:id', async (req, res, next) => {
     const updateSchema = createTaskSchema.partial();
     const data = updateSchema.parse(req.body);
     
-    const updateData: Partial<NewTask> = {
+    const updateData: any = {
       ...data,
       dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
       updatedAt: new Date(),
     };
     
-    const [task] = await db
+    const result = await db
       .update(tasks)
       .set(updateData)
       .where(eq(tasks.id, req.params.id))
       .returning();
+    
+    const task = result[0];
     
     if (!task) {
       throw new AppError(404, 'Task not found', 'NOT_FOUND');
@@ -147,14 +196,18 @@ router.patch('/:id', async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
   try {
     // Get task before deletion to broadcast event
-    const taskToDelete = await db.query.tasks.findFirst({
-      where: (tasks, { eq }) => eq(tasks.id, req.params.id),
-    });
+    const taskToDelete = await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.id, req.params.id))
+      .limit(1);
     
-    const [task] = await db
+    const result = await db
       .delete(tasks)
       .where(eq(tasks.id, req.params.id))
       .returning();
+    
+    const task = result[0];
     
     if (!task) {
       throw new AppError(404, 'Task not found', 'NOT_FOUND');

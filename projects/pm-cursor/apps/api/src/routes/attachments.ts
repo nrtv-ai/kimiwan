@@ -1,9 +1,9 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { eq } from 'drizzle-orm';
-import { db, attachments } from '../db/index.js';
+import { eq, and } from 'drizzle-orm';
+import { db, attachments, users } from '../db/index.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { io } from '../index.js';
 
@@ -55,7 +55,7 @@ const upload = multer({
 });
 
 // Helper to broadcast attachment events
-const broadcastAttachmentEvent = (event: string, attachment: any, taskId: string) => {
+const broadcastAttachmentEvent = (event: string, attachment: Record<string, any>, taskId: string) => {
   io.to(`task:${taskId}`).emit(`attachment:${event}`, attachment);
   io.emit(`attachment:${event}`, { ...attachment, taskId });
 };
@@ -65,13 +65,26 @@ router.get('/', async (req, res, next) => {
   try {
     const { taskId } = req.params;
     
-    const taskAttachments = await db.query.attachments.findMany({
-      where: (attachments, { eq }) => eq(attachments.taskId, taskId),
-      with: {
-        uploadedByUser: true,
-      },
-      orderBy: (attachments, { desc }) => [desc(attachments.createdAt)],
-    });
+    // Get attachments with user info using a join
+    const result = await db
+      .select({
+        attachment: attachments,
+        uploadedByUser: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+        },
+      })
+      .from(attachments)
+      .leftJoin(users, eq(attachments.uploadedBy, users.id))
+      .where(eq(attachments.taskId, taskId))
+      .orderBy(attachments.createdAt);
+    
+    // Transform to expected format
+    const taskAttachments = result.map(r => ({
+      ...(r.attachment as Record<string, any>),
+      uploadedByUser: r.uploadedByUser,
+    }));
     
     res.json({ data: taskAttachments });
   } catch (error) {
@@ -106,16 +119,20 @@ router.post('/', upload.single('file'), async (req, res, next) => {
     
     const [attachment] = await db.insert(attachments).values(newAttachment).returning();
     
-    // Populate uploadedBy user info for the response
-    const attachmentWithUser = await db.query.attachments.findFirst({
-      where: (attachments, { eq }) => eq(attachments.id, attachment.id),
-      with: {
-        uploadedByUser: true,
-      },
-    });
+    // Get user info
+    const user = await db.select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+    }).from(users).where(eq(users.id, uploadedBy)).limit(1);
+    
+    const attachmentWithUser = {
+      ...attachment,
+      uploadedByUser: user[0] || null,
+    };
     
     // Broadcast attachment creation event
-    broadcastAttachmentEvent('created', attachmentWithUser, taskId);
+    broadcastAttachmentEvent('created', attachmentWithUser as any, taskId);
     
     res.status(201).json({ data: attachmentWithUser });
   } catch (error) {
@@ -128,19 +145,25 @@ router.get('/:id', async (req, res, next) => {
   try {
     const { taskId, id } = req.params;
     
-    const attachment = await db.query.attachments.findFirst({
-      where: (attachments, { eq, and }) => 
-        and(eq(attachments.id, id), eq(attachments.taskId, taskId)),
-      with: {
-        uploadedByUser: true,
-      },
-    });
+    const result = await db
+      .select({
+        attachment: attachments,
+        uploadedByUser: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+        },
+      })
+      .from(attachments)
+      .leftJoin(users, eq(attachments.uploadedBy, users.id))
+      .where(and(eq(attachments.id, id), eq(attachments.taskId, taskId)))
+      .limit(1);
     
-    if (!attachment) {
+    if (!result.length) {
       throw new AppError(404, 'Attachment not found', 'NOT_FOUND');
     }
     
-    res.json({ data: attachment });
+    res.json({ data: { ...(result[0].attachment as Record<string, any>), uploadedByUser: result[0].uploadedByUser } });
   } catch (error) {
     next(error);
   }
@@ -153,24 +176,25 @@ router.delete('/:id', async (req, res, next) => {
     const userId = req.user?.id;
     
     // Get attachment to check ownership
-    const attachment = await db.query.attachments.findFirst({
-      where: (attachments, { eq, and }) => 
-        and(eq(attachments.id, id), eq(attachments.taskId, taskId)),
-    });
+    const attachment = await db
+      .select()
+      .from(attachments)
+      .where(and(eq(attachments.id, id), eq(attachments.taskId, taskId)))
+      .limit(1);
     
-    if (!attachment) {
+    if (!attachment.length) {
       throw new AppError(404, 'Attachment not found', 'NOT_FOUND');
     }
     
     // Check if user is the uploader or an admin
-    if (attachment.uploadedBy !== userId && req.user?.role !== 'admin') {
+    if ((attachment[0] as Record<string, any>).uploadedBy !== userId && req.user?.role !== 'admin') {
       throw new AppError(403, 'You can only delete your own attachments', 'FORBIDDEN');
     }
     
     await db.delete(attachments).where(eq(attachments.id, id));
     
     // Broadcast attachment deletion event
-    broadcastAttachmentEvent('deleted', { id, taskId }, taskId);
+    broadcastAttachmentEvent('deleted', { id, taskId } as any, taskId);
     
     res.status(204).send();
   } catch (error) {
