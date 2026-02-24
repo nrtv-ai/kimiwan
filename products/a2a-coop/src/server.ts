@@ -84,13 +84,15 @@ export interface HealthStatus {
     registry: 'ok' | 'error';
     messageBus: 'ok' | 'error';
     taskOrchestrator: 'ok' | 'error';
+    storage: 'connected' | 'memory' | 'error';
   };
   metrics: {
     agents: number;
-    tasks: { total: number; pending: number; inProgress: number; completed: number };
+    tasks: { created: number; completed: number; failed: number; successRate: number; avgDuration: number };
     contexts: number;
     messages: number;
     connections: number;
+    requests?: { total: number; byType: Record<string, number>; errors: number; errorRate: number; avgDuration: number };
   };
 }
 
