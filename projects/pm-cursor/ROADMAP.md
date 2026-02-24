@@ -69,13 +69,13 @@
 ### v0.2.0 - Authentication & Real-time (Remaining)
 
 #### Real-time Features
-- [ ] WebSocket event broadcasting
-- [ ] Live task updates
+- [x] WebSocket event broadcasting
+- [x] Live task updates
 - [ ] Activity feed real-time updates
 - [ ] Notification system
 
 #### Task Enhancements
-- [ ] Task detail page
+- [x] Task detail page
 - [ ] Task comments
 - [ ] Task attachments
 - [ ] Subtasks / task hierarchy

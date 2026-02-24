@@ -30,7 +30,9 @@ interface Task {
 }
 
 export function Tasks() {
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { onTaskCreated, onTaskUpdated, onTaskDeleted } = useSocket()
   const [isCreating, setIsCreating] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -49,6 +51,27 @@ export function Tasks() {
       return res.data.data || []
     },
   })
+
+  // Listen for real-time task events
+  useEffect(() => {
+    const unsubscribeCreated = onTaskCreated(() => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+    })
+
+    const unsubscribeUpdated = onTaskUpdated(() => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+    })
+
+    const unsubscribeDeleted = onTaskDeleted(() => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+    })
+
+    return () => {
+      unsubscribeCreated()
+      unsubscribeUpdated()
+      unsubscribeDeleted()
+    }
+  }, [onTaskCreated, onTaskUpdated, onTaskDeleted, queryClient])
 
   const { data: projects } = useQuery({
     queryKey: ['projects'],
@@ -249,7 +272,11 @@ export function Tasks() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="divide-y divide-gray-200">
             {filteredTasks?.map((task) => (
-              <div key={task.id} className="p-4 hover:bg-gray-50 transition-colors">
+              <div 
+                key={task.id} 
+                onClick={() => navigate(`/tasks/${task.id}`)}
+                className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+              >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -283,7 +310,13 @@ export function Tasks() {
                       </span>
                     </div>
                   </div>
-                  <button className="ml-4 text-gray-400 hover:text-gray-600">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      // TODO: Show task menu
+                    }}
+                    className="ml-4 text-gray-400 hover:text-gray-600"
+                  >
                     <MoreHorizontal className="w-4 h-4" />
                   </button>
                 </div>

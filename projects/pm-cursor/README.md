@@ -12,7 +12,8 @@ PM-Cursor is an intelligent project management platform designed for the AI era.
 - ✅ **JWT Authentication** - Register, Login, Protected Routes
 - ✅ **Password hashing** with bcrypt
 - ✅ **Automatic token refresh**
-- ✅ Real-time WebSocket infrastructure
+- ✅ **Real-time WebSocket** - Live task updates, project rooms
+- ✅ **Task Detail Page** - Full task view with editable properties
 - ✅ Responsive React frontend with auth pages
 - ✅ PostgreSQL + Drizzle ORM
 - ✅ Docker Compose for local dev
