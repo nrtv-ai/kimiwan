@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">hate-beat</string>
+    <string name="title_activity_main">hate-beat</string>
+    <string name="package_name">com.hatebeat.app</string>
+    <string name="custom_url_scheme">com.hatebeat.app</string>
+</resources>
