@@ -2,6 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { createServer, IncomingMessage, ServerResponse } from 'http';
 import { A2ACoop } from './index';
 import { WebSocketRateLimiter } from './rateLimiter';
+import { A2ACoopRestApi } from './restApi';
 import {
   AgentId,
   TaskId,
@@ -58,6 +59,7 @@ export interface ServerOptions {
   rateLimitWindowMs?: number;
   rateLimitMaxRequests?: number;
   enableHealthCheck?: boolean;
+  enableRestApi?: boolean;
 }
 
 /**
@@ -106,6 +108,7 @@ export class A2ACoopServer {
   private clients: Map<WebSocket, ClientInfo> = new Map();
   private agentConnections: Map<AgentId, WebSocket> = new Map();
   private rateLimiter?: WebSocketRateLimiter;
+  private restApi?: A2ACoopRestApi;
   private options: ServerOptions;
   private startTime: number = Date.now();
 
@@ -117,6 +120,7 @@ export class A2ACoopServer {
       maxMessageHistory: 1000,
       enableRateLimiting: true,
       enableHealthCheck: true,
+      enableRestApi: true,
       ...options,
     };
 
@@ -130,7 +134,12 @@ export class A2ACoopServer {
       });
     }
 
-    // Create HTTP server for health checks
+    // Initialize REST API if enabled
+    if (this.options.enableRestApi) {
+      this.restApi = new A2ACoopRestApi(this.coop);
+    }
+
+    // Create HTTP server for health checks and REST API
     this.httpServer = createServer((req, res) => this.handleHttpRequest(req, res));
     
     // Create WebSocket server attached to HTTP server
@@ -146,6 +155,9 @@ export class A2ACoopServer {
       console.log(`A2A-Coop server listening on port ${this.port}`);
       if (this.options.enableHealthCheck) {
         console.log(`Health check available at http://localhost:${this.port}/health`);
+      }
+      if (this.options.enableRestApi) {
+        console.log(`REST API available at http://localhost:${this.port}/api`);
       }
     });
   }
@@ -196,7 +208,15 @@ export class A2ACoopServer {
   }
 
   private handleHttpRequest(req: IncomingMessage, res: ServerResponse): void {
-    // Enable CORS
+    const url = req.url || '/';
+
+    // Route API requests to REST API
+    if (this.restApi && url.startsWith('/api/')) {
+      this.restApi.handleRequest(req, res);
+      return;
+    }
+
+    // Enable CORS for non-API routes
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -206,8 +226,6 @@ export class A2ACoopServer {
       res.end();
       return;
     }
-
-    const url = req.url || '/';
 
     // Health check endpoint
     if (url === '/health' && this.options.enableHealthCheck) {
@@ -224,11 +242,12 @@ export class A2ACoopServer {
       res.writeHead(200);
       res.end(JSON.stringify({
         name: 'A2A-Coop',
-        version: '0.1.0',
+        version: '0.2.0',
         description: 'Agent-to-Agent Collaboration Engine',
         endpoints: {
           websocket: `ws://localhost:${this.port}`,
           health: `http://localhost:${this.port}/health`,
+          api: `http://localhost:${this.port}/api`,
         },
       }, null, 2));
       return;

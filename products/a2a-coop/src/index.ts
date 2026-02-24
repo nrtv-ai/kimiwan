@@ -272,3 +272,4 @@ export { TaskOrchestrator } from './orchestrator';
 export { A2ACoopServer, ServerOptions, HealthStatus } from './server';
 export { A2ACoopClient } from './client';
 export { RateLimiter, WebSocketRateLimiter, RateLimiterConfig } from './rateLimiter';
+export { A2ACoopRestApi } from './restApi';
