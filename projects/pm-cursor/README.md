@@ -1,8 +1,55 @@
 # PM-Cursor
 
-**AI-Native Project Management Tool**
+**AI-Native Project Management Tool - v0.1.0**
 
 PM-Cursor is an intelligent project management platform designed for the AI era. Unlike traditional PM tools that treat AI as an afterthought, PM-Cursor is built from the ground up with AI agents as first-class citizens in the project workflow.
+
+## 🚀 Current Status: Foundation Phase (v0.1.0)
+
+### What's Working
+- ✅ Full project/task/agent CRUD
+- ✅ AI-powered task breakdown, status summaries, and risk analysis
+- ✅ Real-time WebSocket infrastructure
+- ✅ Responsive React frontend
+- ✅ PostgreSQL + Drizzle ORM
+- ✅ Docker Compose for local dev
+
+### Quick Start
+
+```bash
+# 1. Clone and setup
+cd projects/pm-cursor
+
+# 2. Set up environment
+cp apps/api/.env.example apps/api/.env
+# Edit apps/api/.env and add your OPENAI_API_KEY
+
+# 3. Start with Docker (recommended)
+docker-compose up -d
+
+# Or manually:
+# Start PostgreSQL and Redis
+docker-compose up -d postgres redis
+
+# Install dependencies
+npm install
+
+# Run migrations
+npm run db:migrate
+
+# Start dev servers
+npm run dev
+```
+
+The app will be available at:
+- Web UI: http://localhost:5173
+- API: http://localhost:3001
+
+### AI Features
+
+1. **Task Breakdown** - AI analyzes your project and creates structured tasks
+2. **Status Summary** - Get AI-generated project status reports
+3. **Risk Analysis** - Identify potential risks with mitigation strategies
 
 ## Vision
 
@@ -16,83 +63,44 @@ We believe the future of project management is not about humans managing AI, but
 4. **Human-in-the-Loop** - Humans retain control while AI handles the heavy lifting
 5. **Continuous Learning** - The system improves from every interaction
 
-## Key Differentiators
+## Architecture
 
-| Traditional PM Tools | PM-Cursor |
-|---------------------|-----------|
-| AI as a chatbot add-on | AI as core team member |
-| Static task lists | Dynamic, AI-managed workstreams |
-| Manual status updates | Real-time AI-generated insights |
-| Reactive problem solving | Predictive risk management |
-| Siloed project data | Unified knowledge graph |
-
-## Target Users
-
-- **Engineering Teams** managing complex technical projects
-- **Product Managers** coordinating cross-functional work
-- **Agencies** handling multiple client projects
-- **Startups** needing to move fast with limited resources
-- **Enterprise Teams** seeking to modernize their PM workflows
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed system design.
 
 ## Roadmap
 
-### Phase 1: Foundation (Current)
-- Core data models and API
-- Basic project/task management
-- Agent integration framework
-
-### Phase 2: Intelligence
-- AI-powered task breakdown
-- Automated status updates
-- Risk prediction
-
-### Phase 3: Collaboration
-- Multi-agent workflows
-- Natural language project queries
-- Intelligent resource allocation
-
-### Phase 4: Scale
-- Enterprise features
-- Advanced analytics
-- Custom AI agent training
+See [ROADMAP.md](./ROADMAP.md) for development plans.
 
 ## Tech Stack
 
-- **Frontend**: React + TypeScript + Tailwind CSS
+- **Frontend**: React + TypeScript + Tailwind CSS + TanStack Query
 - **Backend**: Node.js + Express + TypeScript
-- **Database**: PostgreSQL + Redis
-- **AI Layer**: OpenAI API + LangChain
-- **Real-time**: WebSockets
-- **Deployment**: Docker + Kubernetes
+- **Database**: PostgreSQL + Drizzle ORM
+- **Cache**: Redis
+- **AI**: OpenAI API (GPT-4o)
+- **Real-time**: Socket.io
+- **Build**: Turbo + Vite
 
-## Getting Started
+## Project Structure
 
-```bash
-# Clone the repository
-git clone https://github.com/your-org/pm-cursor.git
-cd pm-cursor
-
-# Install dependencies
-npm install
-
-# Set up environment
-cp .env.example .env
-# Edit .env with your configuration
-
-# Run database migrations
-npm run db:migrate
-
-# Start development server
-npm run dev
+```
+pm-cursor/
+├── apps/
+│   ├── api/          # Express backend
+│   └── web/          # React frontend
+├── packages/
+│   └── shared/       # Shared types
+├── docs/             # Documentation
+└── docker-compose.yml
 ```
 
 ## Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+This is an active development project. See [ROADMAP.md](./ROADMAP.md) for areas that need help.
 
 ## License
 
-MIT License - see [LICENSE](./LICENSE) for details.
+MIT License
 
 ---
 

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { db, agents, NewAgent } from '../db/index.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { executeAgentAction } from '../services/aiService.js';
 
 const router = Router();
 
@@ -151,14 +152,14 @@ router.post('/:id/execute', async (req, res, next) => {
       throw new AppError(404, 'Agent not found', 'NOT_FOUND');
     }
     
-    // TODO: Implement actual agent execution with LLM
-    // This is a placeholder for the AI integration
+    // Execute the agent action using the AI service
+    const result = await executeAgentAction(agent.id, action, context);
     
     res.json({ 
       data: {
         agentId: agent.id,
         action,
-        result: 'Agent execution placeholder - AI integration pending',
+        ...result,
         timestamp: new Date().toISOString(),
       }
     });

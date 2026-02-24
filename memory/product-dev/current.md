@@ -63,16 +63,74 @@ curl http://localhost:8080/api/status
 
 ### 2. PM-Cursor: AI-Native Product Management
 
-**Status**: Concept Phase
+**Status**: v0.1.0 Foundation Phase - Active Development
 
-**What**: System that analyzes user analytics data (Mixpanel, Databricks, GA) to identify what to build next.
+**What**: AI-native project management tool with first-class AI agent support for task breakdown, status summaries, and risk analysis.
 
-**Location**: `/products/pm-cursor/`
+**Location**: `/projects/pm-cursor/`
 
-**Next Steps**:
-- Define core data ingestion architecture
-- Design analysis engine for insight generation
-- Create proof-of-concept with sample data
+**Completed (v0.1.0)**:
+- [x] Monorepo structure with Turbo
+- [x] PostgreSQL + Drizzle ORM schema
+- [x] Express.js API with TypeScript
+- [x] React + Vite frontend with Tailwind CSS
+- [x] Full CRUD for Projects, Tasks, Agents, Users
+- [x] AI Service with OpenAI integration
+  - Task breakdown via function calling
+  - Status summary generation
+  - Risk analysis
+- [x] Agent execution endpoint
+- [x] Project detail page with AI Assist modal
+- [x] WebSocket infrastructure (Socket.io)
+- [x] Activity logging system
+- [x] Docker Compose for local dev
+- [x] Environment configuration
+
+**Frontend Pages**:
+- [x] Dashboard with stats
+- [x] Projects list with create modal
+- [x] Project Detail (Tasks, Agents, Insights tabs)
+- [x] Tasks list with filters
+- [x] Agents management with metrics
+
+**API Endpoints**:
+- `GET/POST/PATCH/DELETE /api/v1/projects`
+- `GET/POST/PATCH/DELETE /api/v1/tasks`
+- `GET/POST/PATCH/DELETE /api/v1/agents`
+- `POST /api/v1/agents/:id/execute` - AI execution
+- `GET/POST/PATCH/DELETE /api/v1/users`
+- `GET /api/v1/activities`
+- `GET /health`
+
+**Next Steps** (v0.2.0):
+- [ ] JWT authentication
+- [ ] Login/Register pages
+- [ ] Real-time WebSocket events
+- [ ] Task detail page with comments
+- [ ] Task attachments
+- [ ] Protected routes
+
+**Quick Start**:
+```bash
+cd projects/pm-cursor
+
+# Set up environment
+cp apps/api/.env.example apps/api/.env
+# Edit and add OPENAI_API_KEY
+
+# Start with Docker
+docker-compose up -d
+
+# Or manually:
+docker-compose up -d postgres redis
+npm install
+npm run db:migrate
+npm run dev
+```
+
+Access:
+- Web UI: http://localhost:5173
+- API: http://localhost:3001
 
 ---
 
