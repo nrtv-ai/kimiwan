@@ -1,18 +1,27 @@
 {
   "name": "hate-beat",
   "version": "1.0.0",
-  "description": "A mobile game where you beat tasks you hate by tapping them into oblivion.",
-  "main": "index.js",
+  "description": "A mobile rhythm game where you beat tasks you hate by tapping them into oblivion",
+  "main": "web/index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "echo 'No build step needed for vanilla JS'",
+    "sync": "npx cap sync",
+    "android": "npx cap open android",
+    "ios": "npx cap open ios",
+    "android:build": "cd android && ./gradlew assembleDebug",
+    "ios:build": "cd ios/App && xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug",
+    "serve": "npx serve web",
+    "test": "echo 'Tests not implemented yet'"
   },
-  "keywords": [],
+  "keywords": ["game", "rhythm", "mobile", "capacitor", "casual"],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0"
+  },
   "dependencies": {
-    "@capacitor/android": "^8.1.0",
-    "@capacitor/cli": "^8.1.0",
-    "@capacitor/core": "^8.1.0",
-    "@capacitor/ios": "^8.1.0"
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/ios": "^6.0.0"
   }
 }

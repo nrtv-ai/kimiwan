@@ -2,36 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a1a2e">
     <title>Hate Beat</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
             color: #fff;
             overflow: hidden;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
         }
         .screen {
             display: none;
             padding: 20px;
             min-height: 100vh;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
-        .screen.active { display: flex; flex-direction: column; }
+        .screen.active { display: flex; }
         h1 {
             text-align: center;
-            font-size: 2.5rem;
+            font-size: clamp(2rem, 8vw, 3.5rem);
             margin-bottom: 10px;
-            text-shadow: 0 0 20px #e94560;
+            text-shadow: 0 0 20px #e94560, 0 0 40px #e94560;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
         }
         .subtitle {
             text-align: center;
             color: #888;
             margin-bottom: 30px;
+            font-size: clamp(0.9rem, 4vw, 1.2rem);
+            padding: 0 20px;
         }
         input, textarea {
             width: 100%;
+            max-width: 400px;
             padding: 15px;
             border: 2px solid #e94560;
             border-radius: 10px;
@@ -39,6 +56,11 @@
             color: #fff;
             font-size: 1.1rem;
             margin-bottom: 20px;
+            outline: none;
+            transition: box-shadow 0.3s;
+        }
+        input:focus, textarea:focus {
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
         }
         input::placeholder, textarea::placeholder {
             color: #666;
@@ -53,32 +75,40 @@
             font-weight: bold;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
         }
-        button:hover {
+        button:hover, button:active {
             transform: scale(1.05);
-            box-shadow: 0 0 30px rgba(233, 69, 96, 0.5);
+            box-shadow: 0 0 30px rgba(233, 69, 96, 0.6);
         }
-        button:active { transform: scale(0.95); }
+        button:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
         .hate-scale {
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             margin: 20px 0;
+            max-width: 400px;
         }
         .hate-btn {
-            width: 50px;
-            height: 50px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
             border: 2px solid #e94560;
             background: transparent;
             color: #fff;
-            font-size: 1.2rem;
+            font-size: 1rem;
+            font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
         }
         .hate-btn.selected {
-            background: #e94560;
-            transform: scale(1.2);
+            background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
+            transform: scale(1.15);
+            box-shadow: 0 0 15px rgba(233, 69, 96, 0.6);
         }
         #gameCanvas {
             position: fixed;
@@ -87,53 +117,191 @@
             width: 100%;
             height: 100%;
             z-index: 1;
+            display: none;
         }
+        #gameCanvas.active { display: block; }
         .ui-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            padding: 20px;
+            padding: 15px;
             z-index: 10;
             pointer-events: none;
+            display: none;
         }
+        .ui-overlay.active { display: block; }
         .hp-bar {
             width: 100%;
-            height: 30px;
+            height: 25px;
             background: rgba(255,255,255,0.1);
             border-radius: 15px;
             overflow: hidden;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            border: 2px solid rgba(233, 69, 96, 0.3);
         }
         .hp-fill {
             height: 100%;
             background: linear-gradient(90deg, #e94560 0%, #ff6b6b 100%);
-            transition: width 0.3s;
+            transition: width 0.3s ease-out;
+            box-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
         }
         .word-counter {
             text-align: center;
-            font-size: 1.2rem;
+            font-size: 1rem;
+            color: #aaa;
         }
-        .victory-screen {
+        .score-display {
+            position: fixed;
+            top: 60px;
+            right: 15px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4ecca3;
+            text-shadow: 0 0 10px #4ecca3;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .combo-display {
+            position: fixed;
+            top: 90px;
+            right: 15px;
+            font-size: 1rem;
+            color: #ffd700;
+            text-shadow: 0 0 10px #ffd700;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .combo-display.active { opacity: 1; }
+        .victory-screen, .game-over-screen {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 100;
+            padding: 20px;
         }
-        .victory-screen.active { display: flex; }
+        .victory-screen.active, .game-over-screen.active { display: flex; }
         .victory-text {
-            font-size: 3rem;
+            font-size: clamp(2.5rem, 10vw, 4rem);
             color: #4ecca3;
             text-shadow: 0 0 30px #4ecca3;
             margin-bottom: 20px;
+            animation: victoryPulse 1s ease-in-out infinite;
         }
+        .game-over-text {
+            font-size: clamp(2.5rem, 10vw, 4rem);
+            color: #e94560;
+            text-shadow: 0 0 30px #e94560;
+            margin-bottom: 20px;
+        }
+        @keyframes victoryPulse {
+            0%, 100% { transform: scale(1); text-shadow: 0 0 30px #4ecca3; }
+            50% { transform: scale(1.05); text-shadow: 0 0 50px #4ecca3, 0 0 70px #4ecca3; }
+        }
+        .stats-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 1.1rem;
+        }
+        .beat-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid #e94560;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .beat-indicator.active {
+            opacity: 1;
+            animation: beatPulse 0.5s ease-out;
+        }
+        @keyframes beatPulse {
+            0% { transform: translateX(-50%) scale(1); box-shadow: 0 0 0 rgba(233, 69, 96, 0.8); }
+            50% { transform: translateX(-50%) scale(1.3); box-shadow: 0 0 30px rgba(233, 69, 96, 0.8); }
+            100% { transform: translateX(-50%) scale(1); box-shadow: 0 0 0 rgba(233, 69, 96, 0); }
+        }
+        .rhythm-bar {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .rhythm-bar.active { opacity: 1; }
+        .rhythm-marker {
+            position: absolute;
+            top: 0;
+            width: 20px;
+            height: 100%;
+            background: #e94560;
+            border-radius: 5px;
+            animation: rhythmMove 2s linear infinite;
+        }
+        @keyframes rhythmMove {
+            0% { left: -20px; }
+            100% { left: 100%; }
+        }
+        .tutorial {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: #888;
+            font-size: 0.9rem;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tutorial.active { opacity: 1; }
+        .floating-text {
+            position: absolute;
+            font-weight: bold;
+            font-size: 1.2rem;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            z-index: 20;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+        }
+        .perfect { color: #ffd700; text-shadow: 0 0 10px #ffd700; }
+        .good { color: #4ecca3; text-shadow: 0 0 10px #4ecca3; }
+        .miss { color: #e94560; text-shadow: 0 0 10px #e94560; }
     </style>
 </head>
 <body>
@@ -161,34 +329,58 @@
             <button class="hate-btn" onclick="selectHate(9)">9</button>
             <button class="hate-btn" onclick="selectHate(10)">10</button>
         </div>
-        <p id="hateLabel" style="text-align: center; color: #888; margin: 20px 0;"></p>
-        <button onclick="goToScreen3()" id="continueBtn2" style="opacity: 0.5; pointer-events: none;">Continue →</button>
+        <p id="hateLabel" style="text-align: center; color: #888; margin: 20px 0; min-height: 24px;"></p>
+        <button onclick="goToScreen3()" id="continueBtn2" disabled>Continue →</button>
     </div>
 
     <!-- Screen 3: Describe Hate -->
     <div id="screen3" class="screen">
         <h1>HATE BEAT</h1>
-        <p class="subtitle">Describe how much you hate it with words:</p>
+        <p class="subtitle">Describe your hate with words (they become enemies!):</p>
         <textarea id="hateWords" rows="4" placeholder="e.g., boring tedious painful soul-crushing miserable awful..." maxlength="200"></textarea>
         <button onclick="startBattle()">BATTLE!</button>
     </div>
 
     <!-- Game Screen -->
     <canvas id="gameCanvas"></canvas>
-    <div class="ui-overlay">
+    <div class="ui-overlay" id="uiOverlay">
         <div class="hp-bar">
             <div class="hp-fill" id="hpFill" style="width: 100%"></div>
         </div>
         <div class="word-counter">
-            <span id="wordsRemaining">0</span> words remaining
+            <span id="wordsRemaining">0</span> enemies remaining
         </div>
     </div>
+    <div class="score-display" id="scoreDisplay">Score: 0</div>
+    <div class="combo-display" id="comboDisplay">Combo: x0</div>
+    <div class="beat-indicator" id="beatIndicator"></div>
+    <div class="rhythm-bar" id="rhythmBar">
+        <div class="rhythm-marker"></div>
+    </div>
+    <div class="tutorial" id="tutorial">Tap the words to destroy them!<br>Time your taps with the beat for bonus points!</div>
 
     <!-- Victory Screen -->
     <div id="victoryScreen" class="victory-screen">
         <div class="victory-text">VICTORY!</div>
-        <p>You defeated <span id="victoryTask"></span>!</p>
-        <button onclick="resetGame()" style="margin-top: 30px;">Beat Another Task</button>
+        <p style="font-size: 1.2rem; margin-bottom: 10px;">You defeated <span id="victoryTask"></span>!</p>
+        <div class="stats-box">
+            <div class="stat-row"><span>Final Score:</span><span id="finalScore">0</span></div>
+            <div class="stat-row"><span>Max Combo:</span><span id="maxCombo">0</span></div>
+            <div class="stat-row"><span>Perfect Hits:</span><span id="perfectHits">0</span></div>
+            <div class="stat-row"><span>Accuracy:</span><span id="accuracy">0%</span></div>
+        </div>
+        <button onclick="resetGame()" style="margin-top: 20px;">Beat Another Task</button>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen" class="game-over-screen">
+        <div class="game-over-text">GAME OVER</div>
+        <p style="font-size: 1.2rem; margin-bottom: 10px;">The hate consumed you...</p>
+        <div class="stats-box">
+            <div class="stat-row"><span>Final Score:</span><span id="gameOverScore">0</span></div>
+            <div class="stat-row"><span>Enemies Destroyed:</span><span id="enemiesDestroyed">0</span></div>
+        </div>
+        <button onclick="resetGame()" style="margin-top: 20px;">Try Again</button>
     </div>
 
     <script>
@@ -198,14 +390,26 @@
             hateLevel: 0,
             words: [],
             enemies: [],
+            particles: [],
+            floatingTexts: [],
             wordsDestroyed: 0,
-            totalWords: 0
+            totalWords: 0,
+            score: 0,
+            combo: 0,
+            maxCombo: 0,
+            perfectHits: 0,
+            totalHits: 0,
+            lastBeatTime: 0,
+            beatInterval: 500, // ms between beats
+            isPlaying: false,
+            gameTime: 0
         };
 
         // Canvas setup
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         let animationId;
+        let lastTime = 0;
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -217,7 +421,8 @@
         // Navigation
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
+            const screen = document.getElementById(id);
+            if (screen) screen.classList.add('active');
         }
 
         function goToScreen2() {
@@ -238,8 +443,7 @@
                           'Frustrating', 'Very annoying', 'Hate it', 'Strongly despise',
                           'Absolutely loathe', 'Pure rage', 'EXISTENTIAL DREAD'];
             document.getElementById('hateLabel').textContent = labels[level];
-            document.getElementById('continueBtn2').style.opacity = '1';
-            document.getElementById('continueBtn2').style.pointerEvents = 'auto';
+            document.getElementById('continueBtn2').disabled = false;
         }
 
         function goToScreen3() {
@@ -254,79 +458,101 @@
                 .replace(/[^a-z\s]/g, '')
                 .split(/\s+/)
                 .filter(w => w.length > 2)
-                .slice(0, 20); // Max 20 words
+                .slice(0, 15); // Max 15 words for mobile
         }
 
-        // Enemy class
+        // Enemy class with rhythm mechanics
         class WordEnemy {
             constructor(word, index, total) {
                 this.word = word;
-                this.hp = Math.ceil(word.length / 2); // Longer words = more HP
+                this.hp = Math.ceil(word.length / 2);
                 this.maxHp = this.hp;
                 
-                // Position - spawn from edges
+                // Spawn from edges with some randomness
                 const side = Math.floor(Math.random() * 4);
+                const padding = 80;
                 switch(side) {
-                    case 0: this.x = Math.random() * canvas.width; this.y = -50; break;
-                    case 1: this.x = canvas.width + 50; this.y = Math.random() * canvas.height; break;
-                    case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 50; break;
-                    case 3: this.x = -50; this.y = Math.random() * canvas.height; break;
+                    case 0: this.x = Math.random() * canvas.width; this.y = -padding; break;
+                    case 1: this.x = canvas.width + padding; this.y = Math.random() * canvas.height; break;
+                    case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + padding; break;
+                    case 3: this.x = -padding; this.y = Math.random() * canvas.height; break;
                 }
                 
-                // Speed based on hate level
-                const baseSpeed = 0.5 + (gameState.hateLevel * 0.3);
-                const angle = Math.atan2(canvas.height/2 - this.y, canvas.width/2 - this.x);
-                this.vx = Math.cos(angle) * baseSpeed * (0.8 + Math.random() * 0.4);
-                this.vy = Math.sin(angle) * baseSpeed * (0.8 + Math.random() * 0.4);
+                // Speed based on hate level - faster = harder
+                const baseSpeed = 0.8 + (gameState.hateLevel * 0.4);
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const angle = Math.atan2(centerY - this.y, centerX - this.x);
+                const speedVariation = 0.7 + Math.random() * 0.6;
+                this.vx = Math.cos(angle) * baseSpeed * speedVariation;
+                this.vy = Math.sin(angle) * baseSpeed * speedVariation;
                 
-                this.size = 20 + word.length * 3;
-                this.color = `hsl(${Math.random() * 60}, 80%, 60%)`; // Red-orange range
+                // Visual properties
+                this.baseSize = 18 + word.length * 2.5;
+                this.size = this.baseSize;
+                this.hue = 0 + Math.random() * 40; // Red-orange range
                 this.shake = 0;
+                this.spawnTime = Date.now();
+                this.scale = 0;
+                this.targetScale = 1;
             }
 
-            update() {
+            update(deltaTime) {
+                // Spawn animation
+                if (this.scale < this.targetScale) {
+                    this.scale += deltaTime * 0.003;
+                    if (this.scale > this.targetScale) this.scale = this.targetScale;
+                }
+                
                 this.x += this.vx;
                 this.y += this.vy;
                 
-                // Bounce off edges
-                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+                // Bounce off edges with padding
+                const padding = 60;
+                if (this.x < padding) { this.x = padding; this.vx *= -1; }
+                if (this.x > canvas.width - padding) { this.x = canvas.width - padding; this.vx *= -1; }
+                if (this.y < padding) { this.y = padding; this.vy *= -1; }
+                if (this.y > canvas.height - padding) { this.y = canvas.height - padding; this.vy *= -1; }
                 
                 if (this.shake > 0) this.shake--;
+                
+                // Pulse with beat
+                const beatPhase = (Date.now() % gameState.beatInterval) / gameState.beatInterval;
+                this.size = this.baseSize * (1 + Math.sin(beatPhase * Math.PI * 2) * 0.1);
             }
 
             draw() {
                 ctx.save();
                 
-                // Shake effect when damaged
                 const shakeX = this.shake > 0 ? (Math.random() - 0.5) * 10 : 0;
                 const shakeY = this.shake > 0 ? (Math.random() - 0.5) * 10 : 0;
                 
-                // Glow
-                ctx.shadowColor = this.color;
+                // Glow effect
+                ctx.shadowColor = `hsl(${this.hue}, 80%, 60%)`;
                 ctx.shadowBlur = 20;
                 
                 // Word text
-                ctx.font = `bold ${this.size}px sans-serif`;
-                ctx.fillStyle = this.color;
+                ctx.font = `bold ${this.size * this.scale}px sans-serif`;
+                ctx.fillStyle = `hsl(${this.hue}, 80%, ${60 + Math.sin(Date.now() * 0.005) * 10}%)`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(this.word, this.x + shakeX, this.y + shakeY);
                 
-                // HP bar above word
-                const barWidth = 60;
-                const barHeight = 6;
-                ctx.fillStyle = 'rgba(0,0,0,0.5)';
-                ctx.fillRect(this.x - barWidth/2, this.y - this.size/2 - 15, barWidth, barHeight);
-                ctx.fillStyle = '#4ecca3';
-                ctx.fillRect(this.x - barWidth/2, this.y - this.size/2 - 15, barWidth * (this.hp/this.maxHp), barHeight);
+                // HP bar
+                const barWidth = 70;
+                const barHeight = 8;
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                ctx.fillRect(this.x - barWidth/2, this.y - this.size/2 - 18, barWidth, barHeight);
+                ctx.fillStyle = `hsl(${120 * (this.hp/this.maxHp)}, 80%, 50%)`;
+                ctx.fillRect(this.x - barWidth/2, this.y - this.size/2 - 18, barWidth * (this.hp/this.maxHp), barHeight);
                 
                 ctx.restore();
             }
 
             checkHit(x, y) {
                 const dist = Math.hypot(x - this.x, y - this.y);
-                return dist < this.size * 2;
+                return dist < this.size * 1.5;
             }
 
             damage() {
@@ -336,6 +562,83 @@
             }
         }
 
+        // Particle system
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 3 + Math.random() * 5;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.life = 1;
+                this.decay = 0.02 + Math.random() * 0.02;
+                this.color = color;
+                this.size = 3 + Math.random() * 5;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+                this.life -= this.decay;
+                this.size *= 0.97;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function createParticles(x, y, hue) {
+            const color = `hsl(${hue}, 80%, 60%)`;
+            for (let i = 0; i < 15; i++) {
+                gameState.particles.push(new Particle(x, y, color));
+            }
+        }
+
+        // Floating text
+        function showFloatingText(x, y, text, type) {
+            const el = document.createElement('div');
+            el.className = `floating-text ${type}`;
+            el.textContent = text;
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        // Rhythm mechanics
+        function isOnBeat() {
+            const now = Date.now();
+            const beatPhase = (now % gameState.beatInterval) / gameState.beatInterval;
+            return beatPhase < 0.3 || beatPhase > 0.7;
+        }
+
+        function getTimingQuality() {
+            const now = Date.now();
+            const beatPhase = (now % gameState.beatInterval) / gameState.beatInterval;
+            const distFromBeat = Math.min(beatPhase, 1 - beatPhase);
+            if (distFromBeat < 0.15) return 'perfect';
+            if (distFromBeat < 0.3) return 'good';
+            return 'miss';
+        }
+
+        function triggerBeat() {
+            const indicator = document.getElementById('beatIndicator');
+            indicator.classList.remove('active');
+            void indicator.offsetWidth; // Force reflow
+            indicator.classList.add('active');
+        }
+
+        // Game functions
         function startBattle() {
             const hateText = document.getElementById('hateWords').value.trim();
             if (!hateText) return;
@@ -343,37 +646,94 @@
             gameState.words = parseWords(hateText);
             gameState.totalWords = gameState.words.length;
             gameState.wordsDestroyed = 0;
+            gameState.score = 0;
+            gameState.combo = 0;
+            gameState.maxCombo = 0;
+            gameState.perfectHits = 0;
+            gameState.totalHits = 0;
+            gameState.particles = [];
+            gameState.isPlaying = true;
+            gameState.gameTime = 0;
             
-            // Create enemies
-            gameState.enemies = gameState.words.map((word, i) => 
-                new WordEnemy(word, i, gameState.words.length)
-            );
+            // Beat interval based on hate level (higher = faster)
+            gameState.beatInterval = 600 - (gameState.hateLevel * 40);
+            
+            // Create enemies with staggered spawn
+            gameState.enemies = [];
+            gameState.words.forEach((word, i) => {
+                setTimeout(() => {
+                    if (gameState.isPlaying) {
+                        gameState.enemies.push(new WordEnemy(word, i, gameState.words.length));
+                        updateUI();
+                    }
+                }, i * 800);
+            });
             
             updateUI();
-            showScreen('gameCanvas');
-            document.querySelector('.ui-overlay').style.display = 'block';
+            showScreen('');
+            canvas.classList.add('active');
+            document.getElementById('uiOverlay').classList.add('active');
+            document.getElementById('rhythmBar').classList.add('active');
+            document.getElementById('tutorial').classList.add('active');
             
-            gameLoop();
+            // Hide tutorial after 5 seconds
+            setTimeout(() => {
+                document.getElementById('tutorial').classList.remove('active');
+            }, 5000);
+            
+            lastTime = performance.now();
+            gameLoop(lastTime);
         }
 
         function updateUI() {
             const remaining = gameState.enemies.length;
-            const percent = (remaining / gameState.totalWords) * 100;
+            const percent = gameState.totalWords > 0 ? (remaining / gameState.totalWords) * 100 : 0;
             document.getElementById('hpFill').style.width = percent + '%';
             document.getElementById('wordsRemaining').textContent = remaining;
+            document.getElementById('scoreDisplay').textContent = 'Score: ' + Math.floor(gameState.score);
+            
+            const comboEl = document.getElementById('comboDisplay');
+            if (gameState.combo > 1) {
+                comboEl.textContent = 'Combo: x' + gameState.combo;
+                comboEl.classList.add('active');
+            } else {
+                comboEl.classList.remove('active');
+            }
         }
 
-        function gameLoop() {
-            ctx.fillStyle = 'rgba(26, 26, 46, 0.3)';
+        function gameLoop(currentTime) {
+            if (!gameState.isPlaying) return;
+            
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+            gameState.gameTime += deltaTime;
+            
+            // Trigger beat
+            const beatNow = Math.floor(gameState.gameTime / gameState.beatInterval);
+            const lastBeat = Math.floor((gameState.gameTime - deltaTime) / gameState.beatInterval);
+            if (beatNow > lastBeat) {
+                triggerBeat();
+            }
+            
+            // Clear canvas with trail effect
+            ctx.fillStyle = 'rgba(26, 26, 46, 0.25)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
+            // Update and draw enemies
             gameState.enemies.forEach(enemy => {
-                enemy.update();
+                enemy.update(deltaTime);
                 enemy.draw();
             });
             
+            // Update and draw particles
+            gameState.particles = gameState.particles.filter(p => {
+                p.update();
+                p.draw();
+                return p.life > 0;
+            });
+            
             // Check victory
-            if (gameState.enemies.length === 0) {
+            if (gameState.enemies.length === 0 && gameState.totalWords > 0) {
                 victory();
                 return;
             }
@@ -381,65 +741,147 @@
             animationId = requestAnimationFrame(gameLoop);
         }
 
-        // Touch/Click handling
-        canvas.addEventListener('click', handleInput);
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            const touch = e.touches[0];
-            handleInput({ clientX: touch.clientX, clientY: touch.clientY });
-        });
-
-        function handleInput(e) {
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+        // Input handling
+        function handleInput(clientX, clientY) {
+            if (!gameState.isPlaying) return;
             
+            const rect = canvas.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+            
+            let hit = false;
             for (let i = gameState.enemies.length - 1; i >= 0; i--) {
                 if (gameState.enemies[i].checkHit(x, y)) {
+                    hit = true;
+                    const timing = getTimingQuality();
+                    let points = 100;
+                    let text = 'GOOD';
+                    let type = 'good';
+                    
+                    if (timing === 'perfect') {
+                        points = 200;
+                        text = 'PERFECT!';
+                        type = 'perfect';
+                        gameState.perfectHits++;
+                        gameState.combo++;
+                    } else if (timing === 'good') {
+                        points = 100;
+                        gameState.combo++;
+                    } else {
+                        points = 50;
+                        text = 'MISS';
+                        type = 'miss';
+                        gameState.combo = 0;
+                    }
+                    
+                    if (gameState.combo > gameState.maxCombo) {
+                        gameState.maxCombo = gameState.combo;
+                    }
+                    
+                    // Apply combo multiplier
+                    points *= (1 + gameState.combo * 0.1);
+                    gameState.score += points;
+                    gameState.totalHits++;
+                    
+                    showFloatingText(clientX, clientY, text + (gameState.combo > 1 ? ' x' + gameState.combo : ''), type);
+                    
                     if (gameState.enemies[i].damage()) {
-                        // Enemy destroyed
-                        createParticles(gameState.enemies[i].x, gameState.enemies[i].y, gameState.enemies[i].color);
+                        createParticles(gameState.enemies[i].x, gameState.enemies[i].y, gameState.enemies[i].hue);
                         gameState.enemies.splice(i, 1);
+                        gameState.wordsDestroyed++;
                     }
                     updateUI();
                     break;
                 }
             }
-        }
-
-        // Particle effects
-        let particles = [];
-        function createParticles(x, y, color) {
-            for (let i = 0; i < 10; i++) {
-                particles.push({
-                    x, y,
-                    vx: (Math.random() - 0.5) * 10,
-                    vy: (Math.random() - 0.5) * 10,
-                    life: 30,
-                    color
-                });
+            
+            if (!hit) {
+                gameState.combo = 0;
+                updateUI();
             }
         }
 
+        // Touch/Click handlers
+        canvas.addEventListener('click', (e) => handleInput(e.clientX, e.clientY));
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            for (let i = 0; i < e.touches.length; i++) {
+                handleInput(e.touches[i].clientX, e.touches[i].clientY);
+            }
+        }, { passive: false });
+
         function victory() {
+            gameState.isPlaying = false;
             cancelAnimationFrame(animationId);
+            
+            const accuracy = gameState.totalHits > 0 
+                ? Math.round((gameState.perfectHits / gameState.totalHits) * 100) 
+                : 0;
+            
             document.getElementById('victoryTask').textContent = gameState.task;
+            document.getElementById('finalScore').textContent = Math.floor(gameState.score);
+            document.getElementById('maxCombo').textContent = gameState.maxCombo;
+            document.getElementById('perfectHits').textContent = gameState.perfectHits;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+            
             document.getElementById('victoryScreen').classList.add('active');
         }
 
         function resetGame() {
+            gameState.isPlaying = false;
+            cancelAnimationFrame(animationId);
+            
             document.getElementById('victoryScreen').classList.remove('active');
-            document.querySelector('.ui-overlay').style.display = 'none';
-            gameState = { task: '', hateLevel: 0, words: [], enemies: [], wordsDestroyed: 0, totalWords: 0 };
+            document.getElementById('gameOverScreen').classList.remove('active');
+            canvas.classList.remove('active');
+            document.getElementById('uiOverlay').classList.remove('active');
+            document.getElementById('rhythmBar').classList.remove('active');
+            document.getElementById('tutorial').classList.remove('active');
+            document.getElementById('comboDisplay').classList.remove('active');
+            
+            // Reset state
+            gameState = {
+                task: '',
+                hateLevel: 0,
+                words: [],
+                enemies: [],
+                particles: [],
+                floatingTexts: [],
+                wordsDestroyed: 0,
+                totalWords: 0,
+                score: 0,
+                combo: 0,
+                maxCombo: 0,
+                perfectHits: 0,
+                totalHits: 0,
+                lastBeatTime: 0,
+                beatInterval: 500,
+                isPlaying: false,
+                gameTime: 0
+            };
+            
+            // Reset UI
             document.getElementById('taskInput').value = '';
             document.getElementById('hateWords').value = '';
             document.querySelectorAll('.hate-btn').forEach(btn => btn.classList.remove('selected'));
             document.getElementById('hateLabel').textContent = '';
-            document.getElementById('continueBtn2').style.opacity = '0.5';
-            document.getElementById('continueBtn2').style.pointerEvents = 'none';
+            document.getElementById('continueBtn2').disabled = true;
             selectedHate = 0;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             showScreen('screen1');
         }
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                if (document.getElementById('screen1').classList.contains('active')) {
+                    goToScreen2();
+                } else if (document.getElementById('screen3').classList.contains('active')) {
+                    startBattle();
+                }
+            }
+        });
     </script>
 </body>
 </html>
