@@ -109,8 +109,9 @@ await client.completeTask(task.id, {
 | **MessageBus** | Inter-agent communication | Direct messages, broadcasts, subscriptions |
 | **ContextStore** | Shared state management | Hierarchical contexts, access control |
 | **TaskOrchestrator** | Task lifecycle management | Auto-assignment, status tracking, results |
-| **A2ACoopServer** | WebSocket API | Real-time bidirectional communication |
+| **A2ACoopServer** | WebSocket + REST API | Real-time bidirectional + HTTP REST |
 | **A2ACoopClient** | Client SDK | Promise-based API, event handling |
+| **A2ACoopRestApi** | HTTP REST API | Simple HTTP endpoints for integrations |
 
 ## API Reference
 
@@ -225,6 +226,125 @@ const status = await client.getStatus();
 // }
 ```
 
+## REST API
+
+A2A-Coop also provides an HTTP REST API for simpler integrations that don't need real-time bidirectional communication.
+
+### Base URL
+```
+http://localhost:8080/api
+```
+
+### Agents
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/agents` | List all agents |
+| POST | `/api/agents` | Create a new agent |
+| GET | `/api/agents/:id` | Get agent by ID |
+| DELETE | `/api/agents/:id` | Delete an agent |
+
+```bash
+# Create an agent
+curl -X POST http://localhost:8080/api/agents \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "ResearchAgent",
+    "description": "Performs research tasks",
+    "capabilities": ["research", "summarize"]
+  }'
+
+# List all agents
+curl http://localhost:8080/api/agents
+```
+
+### Tasks
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/tasks` | List all tasks |
+| POST | `/api/tasks` | Create a new task |
+| GET | `/api/tasks/:id` | Get task by ID |
+| POST | `/api/tasks/:id/assign` | Assign task to agent |
+| POST | `/api/tasks/:id/start` | Start a task |
+| POST | `/api/tasks/:id/complete` | Complete a task |
+| POST | `/api/tasks/:id/cancel` | Cancel a task |
+
+```bash
+# Create a task
+curl -X POST http://localhost:8080/api/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "request": {
+      "type": "research",
+      "description": "Research AI trends",
+      "payload": { "topic": "AI" }
+    },
+    "createdBy": "agent-id-here"
+  }'
+
+# Assign task
+curl -X POST http://localhost:8080/api/tasks/task-id/assign \
+  -H "Content-Type: application/json" \
+  -d '{"agentId": "agent-id-here"}'
+
+# Complete task
+curl -X POST http://localhost:8080/api/tasks/task-id/complete \
+  -H "Content-Type: application/json" \
+  -d '{
+    "success": true,
+    "data": { "findings": "..." },
+    "logs": ["Started", "Completed"]
+  }'
+```
+
+### Contexts
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/contexts` | List all contexts |
+| POST | `/api/contexts` | Create a new context |
+| GET | `/api/contexts/:id` | Get context by ID |
+| PATCH | `/api/contexts/:id/update` | Update context data |
+
+### Messages
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/messages/send` | Send direct message |
+| POST | `/api/messages/broadcast` | Broadcast message |
+
+```bash
+# Send direct message
+curl -X POST http://localhost:8080/api/messages/send \
+  -H "Content-Type: application/json" \
+  -d '{
+    "from": "agent-1",
+    "to": "agent-2",
+    "content": "Hello!",
+    "data": { "priority": "high" }
+  }'
+
+# Broadcast message
+curl -X POST http://localhost:8080/api/messages/broadcast \
+  -H "Content-Type: application/json" \
+  -d '{
+    "from": "agent-1",
+    "event": "announcement",
+    "data": { "message": "System update" }
+  }'
+```
+
+### Status
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/status` | Get system status |
+
+```bash
+curl http://localhost:8080/api/status
+```
+
 ## Error Handling
 
 The client provides structured error handling:
@@ -321,11 +441,11 @@ See [docs/failures.md](docs/failures.md) for documented mistakes and lessons lea
 - [x] Core architecture (Registry, MessageBus, ContextStore, TaskOrchestrator)
 - [x] WebSocket API server
 - [x] TypeScript client SDK
-- [x] Comprehensive test suite (92+ tests)
+- [x] Comprehensive test suite (148+ tests)
 - [x] Rate limiting middleware
 - [x] Health check endpoint
 - [x] Docker compose setup
-- [ ] HTTP REST API for simpler integrations
+- [x] HTTP REST API for simpler integrations
 - [ ] Persistent storage (Redis/PostgreSQL)
 - [ ] Authentication & authorization
 - [ ] Metrics and monitoring

@@ -73,7 +73,7 @@ export class A2ACoopRestApi {
           return;
         }
         if (method === 'POST') {
-          this.createAgent(body as AgentRegistration, res);
+          this.createAgent(body, res);
           return;
         }
       }
@@ -302,32 +302,22 @@ export class A2ACoopRestApi {
     this.sendJson(res, 200, { success: true });
   }
 
-  private completeTask(
-    taskId: TaskId,
-    body: {
-      success: boolean;
-      data?: Record<string, unknown>;
-      error?: string;
-      logs?: string[];
-      artifacts?: Array<{
-        type: string;
-        name: string;
-        content: unknown;
-        metadata?: Record<string, unknown>;
-      }>;
-    } | null,
-    res: ServerResponse
-  ): void {
+  private completeTask(taskId: TaskId, body: Record<string, unknown> | null, res: ServerResponse): void {
     if (!body || typeof body.success !== 'boolean') {
       this.sendError(res, 400, 'Missing required field: success');
       return;
     }
     const success = this.coop.completeTask(taskId, {
-      success: body.success,
-      data: body.data,
-      error: body.error,
-      logs: body.logs,
-      artifacts: body.artifacts,
+      success: body.success as boolean,
+      data: body.data as Record<string, unknown> | undefined,
+      error: body.error as string | undefined,
+      logs: body.logs as string[] | undefined,
+      artifacts: body.artifacts as Array<{
+        type: string;
+        name: string;
+        content: unknown;
+        metadata?: Record<string, unknown>;
+      }> | undefined,
     });
     if (!success) {
       this.sendError(res, 404, 'Task not found');
@@ -336,17 +326,14 @@ export class A2ACoopRestApi {
     this.sendJson(res, 200, { success: true });
   }
 
-  private cancelTask(
-    taskId: TaskId,
-    body: { reason?: string } | null,
-    res: ServerResponse
-  ): void {
-    const success = this.coop.cancelTask(taskId, body?.reason);
+  private cancelTask(taskId: TaskId, body: Record<string, unknown> | null, res: ServerResponse): void {
+    const reason = body?.reason as string | undefined;
+    const success = this.coop.cancelTask(taskId, reason);
     if (!success) {
       this.sendError(res, 404, 'Task not found');
       return;
     }
-    this.sendJson(res, 200, { success: true, reason: body?.reason });
+    this.sendJson(res, 200, { success: true, reason });
   }
 
   // ==================== Context Handlers ====================
@@ -365,28 +352,25 @@ export class A2ACoopRestApi {
     this.sendJson(res, 200, { context });
   }
 
-  private createContext(
-    body: { request: ContextCreateRequest; createdBy: AgentId } | null,
-    res: ServerResponse
-  ): void {
+  private createContext(body: Record<string, unknown> | null, res: ServerResponse): void {
     if (!body || !body.request || !body.createdBy) {
       this.sendError(res, 400, 'Missing required fields: request, createdBy');
       return;
     }
-    const context = this.coop.createContext(body.request, body.createdBy);
+    const request = body.request as ContextCreateRequest;
+    const createdBy = body.createdBy as AgentId;
+    const context = this.coop.createContext(request, createdBy);
     this.sendJson(res, 201, { context });
   }
 
-  private updateContext(
-    contextId: ContextId,
-    body: { updates: Record<string, unknown>; updatedBy: AgentId } | null,
-    res: ServerResponse
-  ): void {
+  private updateContext(contextId: ContextId, body: Record<string, unknown> | null, res: ServerResponse): void {
     if (!body || !body.updates || !body.updatedBy) {
       this.sendError(res, 400, 'Missing required fields: updates, updatedBy');
       return;
     }
-    const context = this.coop.updateContext(contextId, body.updates, body.updatedBy);
+    const updates = body.updates as Record<string, unknown>;
+    const updatedBy = body.updatedBy as AgentId;
+    const context = this.coop.updateContext(contextId, updates, updatedBy);
     if (!context) {
       this.sendError(res, 404, 'Context not found');
       return;
@@ -396,36 +380,28 @@ export class A2ACoopRestApi {
 
   // ==================== Message Handlers ====================
 
-  private sendMessage(
-    body: {
-      from: AgentId;
-      to: AgentId;
-      content: string;
-      data?: Record<string, unknown>;
-    } | null,
-    res: ServerResponse
-  ): void {
+  private sendMessage(body: Record<string, unknown> | null, res: ServerResponse): void {
     if (!body || !body.from || !body.to || !body.content) {
       this.sendError(res, 400, 'Missing required fields: from, to, content');
       return;
     }
-    const message = this.coop.sendMessage(body.from, body.to, body.content, body.data);
+    const from = body.from as AgentId;
+    const to = body.to as AgentId;
+    const content = body.content as string;
+    const data = body.data as Record<string, unknown> | undefined;
+    const message = this.coop.sendMessage(from, to, content, data);
     this.sendJson(res, 201, { message });
   }
 
-  private broadcastMessage(
-    body: {
-      from: AgentId;
-      event: string;
-      data: Record<string, unknown>;
-    } | null,
-    res: ServerResponse
-  ): void {
+  private broadcastMessage(body: Record<string, unknown> | null, res: ServerResponse): void {
     if (!body || !body.from || !body.event) {
       this.sendError(res, 400, 'Missing required fields: from, event');
       return;
     }
-    const message = this.coop.broadcastMessage(body.from, body.event, body.data);
+    const from = body.from as AgentId;
+    const event = body.event as string;
+    const data = body.data as Record<string, unknown> | undefined;
+    const message = this.coop.broadcastMessage(from, event, data || {});
     this.sendJson(res, 201, { message });
   }
 

@@ -4,7 +4,7 @@
 
 ### 1. A2A-Coop: Agent-to-Agent Collaboration Engine ✅
 
-**Status**: v0.2.0 Complete - Production Polish Done
+**Status**: v0.2.0 Complete - REST API Added
 
 **What**: Enterprise-grade agent collaboration system enabling multiple AI agents to share context, divide tasks, coordinate execution, and report collective results.
 
@@ -12,12 +12,17 @@
 - [x] Core architecture (Registry, MessageBus, ContextStore, TaskOrchestrator)
 - [x] WebSocket API server for remote agent connections
 - [x] TypeScript client SDK with promise-based API
-- [x] Comprehensive test suite (92+ tests)
+- [x] Comprehensive test suite (148+ tests)
 - [x] **Rate limiting middleware** with sliding window algorithm
 - [x] **Health check endpoint** (`/health`) for monitoring
 - [x] **Docker & docker-compose** for easy deployment
 - [x] **Complete API documentation** (docs/API.md)
 - [x] Enhanced README with examples
+- [x] **HTTP REST API** for simpler integrations (NEW!)
+  - Full CRUD for agents, tasks, contexts
+  - Message send/broadcast endpoints
+  - System status endpoint
+  - Comprehensive test coverage (68 new tests)
 
 **Location**: `/products/a2a-coop/`
 
@@ -32,8 +37,23 @@ npm run server
 docker-compose up -d
 ```
 
+**REST API Examples**:
+```bash
+# Create an agent
+curl -X POST http://localhost:8080/api/agents \
+  -H "Content-Type: application/json" \
+  -d '{"name": "ResearchAgent", "capabilities": ["research"]}'
+
+# Create a task
+curl -X POST http://localhost:8080/api/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"request": {...}, "createdBy": "agent-id"}'
+
+# Get system status
+curl http://localhost:8080/api/status
+```
+
 **Next Steps** (v0.3.0):
-- [ ] HTTP REST API for simpler integrations
 - [ ] Persistent storage (Redis/PostgreSQL)
 - [ ] Authentication & authorization
 - [ ] Metrics and monitoring

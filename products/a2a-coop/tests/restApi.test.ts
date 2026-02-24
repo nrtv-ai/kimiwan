@@ -1,7 +1,6 @@
 import { A2ACoop } from '../src/index';
 import { A2ACoopRestApi } from '../src/restApi';
 import { createServer, IncomingMessage, ServerResponse } from 'http';
-import { AgentRegistration, TaskRequest, ContextCreateRequest } from '../src/types';
 
 // Helper to make HTTP requests to the REST API
 function makeRequest(
@@ -25,24 +24,32 @@ function makeRequest(
       },
     } as unknown as IncomingMessage;
 
-    const res = {
-      statusCode: 200,
-      headers: {} as Record<string, string>,
+    interface MockResponse {
+      _statusCode: number;
+      _headers: Record<string, string>;
+      setHeader(key: string, value: string): void;
+      writeHead(code: number): void;
+      end(data: string): void;
+    }
+
+    const res: MockResponse = {
+      _statusCode: 200,
+      _headers: {},
       setHeader: function(key: string, value: string) {
-        this.headers[key] = value;
+        this._headers[key] = value;
       },
       writeHead: function(code: number) {
-        this.statusCode = code;
+        this._statusCode = code;
       },
       end: function(data: string) {
         resolve({
-          statusCode: this.statusCode,
+          statusCode: this._statusCode,
           data: data ? JSON.parse(data) : null,
         });
       },
-    } as unknown as ServerResponse;
+    };
 
-    restApi.handleRequest(req, res);
+    restApi.handleRequest(req, res as unknown as ServerResponse);
   });
 }
 
@@ -85,7 +92,7 @@ describe('A2ACoopRestApi', () => {
 
     describe('POST /api/agents', () => {
       it('should create a new agent', async () => {
-        const registration: AgentRegistration = {
+        const registration = {
           name: 'TestAgent',
           description: 'A test agent',
           capabilities: ['test'],
@@ -462,7 +469,8 @@ describe('A2ACoopRestApi', () => {
         const response = await makeRequest(restApi, 'POST', '/api/messages/send', body);
         
         expect(response.statusCode).toBe(201);
-        expect((response.data as { message: { content: string } }).message.content).toBe('Hello!');
+        const msg = (response.data as { message: { payload: { content: string } } }).message;
+        expect(msg.payload.content).toBe('Hello!');
       });
 
       it('should return 400 if required fields are missing', async () => {
@@ -483,7 +491,8 @@ describe('A2ACoopRestApi', () => {
         const response = await makeRequest(restApi, 'POST', '/api/messages/broadcast', body);
         
         expect(response.statusCode).toBe(201);
-        expect((response.data as { message: { event: string } }).message.event).toBe('announcement');
+        const msg = (response.data as { message: { payload: { event: string } } }).message;
+        expect(msg.payload.event).toBe('announcement');
       });
 
       it('should return 400 if required fields are missing', async () => {
@@ -523,21 +532,29 @@ describe('A2ACoopRestApi', () => {
         on: () => {},
       } as unknown as IncomingMessage;
 
-      const res = {
-        statusCode: 0,
-        headers: {} as Record<string, string>,
+      interface MockResponse {
+        _statusCode: number;
+        _headers: Record<string, string>;
+        setHeader(key: string, value: string): void;
+        writeHead(code: number): void;
+        end(): void;
+      }
+
+      const res: MockResponse = {
+        _statusCode: 0,
+        _headers: {},
         setHeader: function(key: string, value: string) {
-          this.headers[key] = value;
+          this._headers[key] = value;
         },
         writeHead: function(code: number) {
-          this.statusCode = code;
+          this._statusCode = code;
         },
         end: function() {},
-      } as unknown as ServerResponse;
+      };
 
-      restApi.handleRequest(req, res);
+      restApi.handleRequest(req, res as unknown as ServerResponse);
       
-      expect(res.statusCode).toBe(200);
+      expect(res._statusCode).toBe(200);
     });
   });
 });

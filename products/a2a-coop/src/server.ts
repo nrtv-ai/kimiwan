@@ -192,7 +192,7 @@ export class A2ACoopServer {
     return {
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      version: '0.1.0',
+      version: '0.2.0',
       uptime: Date.now() - this.startTime,
       components: {
         websocket: this.wss && this.httpServer.listening ? 'connected' : 'disconnected',
