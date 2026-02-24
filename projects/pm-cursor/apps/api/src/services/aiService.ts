@@ -315,6 +315,112 @@ async function executeRiskAnalysis(
 }
 
 /**
+ * Parse natural language task input into structured task data
+ */
+export interface ParsedTaskInput {
+  title: string;
+  description?: string;
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  status?: 'backlog' | 'todo' | 'in_progress' | 'in_review' | 'done' | 'cancelled';
+  dueDate?: string;
+  estimatedHours?: number;
+  labels?: string[];
+  assigneeHint?: string;
+}
+
+export async function parseNaturalLanguageTask(
+  input: string,
+  projectContext?: { projectName?: string; existingLabels?: string[] }
+): Promise<ParsedTaskInput> {
+  const systemPrompt = `You are a task parsing assistant. Extract structured task information from natural language input.
+  Parse dates relative to today (${new Date().toISOString().split('T')[0]}).
+  Return only valid JSON matching the expected format.`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      temperature: 0.3,
+      max_tokens: 1000,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Parse this task description into structured data: "${input}"` },
+      ],
+      functions: [
+        {
+          name: 'parse_task',
+          description: 'Parse natural language task description into structured data',
+          parameters: {
+            type: 'object',
+            properties: {
+              title: { 
+                type: 'string', 
+                description: 'Clear, concise task title (max 100 chars)' 
+              },
+              description: { 
+                type: 'string', 
+                description: 'Detailed description if provided, null if not' 
+              },
+              priority: { 
+                type: 'string', 
+                enum: ['low', 'medium', 'high', 'urgent'],
+                description: 'Priority based on urgency words (ASAP, urgent, critical = urgent/ high; soon, important = high; normal = medium; whenever, low priority = low)'
+              },
+              status: {
+                type: 'string',
+                enum: ['backlog', 'todo', 'in_progress'],
+                description: 'Status based on action words (start working, begin = in_progress; need to, should do = todo; maybe, consider = backlog)'
+              },
+              dueDate: { 
+                type: 'string', 
+                description: 'Due date in ISO 8601 format (YYYY-MM-DD) if mentioned, null if not. Parse relative dates like "tomorrow", "next week", "in 3 days"'
+              },
+              estimatedHours: { 
+                type: 'number', 
+                description: 'Estimated hours if mentioned (e.g., "2 hours", "half day" = 4), null if not specified'
+              },
+              labels: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Relevant labels/tags extracted from the text (e.g., bug, feature, design, docs)'
+              },
+              assigneeHint: {
+                type: 'string',
+                description: 'Name or role mentioned for assignment (e.g., "John", "the designer", "backend team"), null if not specified'
+              }
+            },
+            required: ['title'],
+          },
+        },
+      ],
+      function_call: { name: 'parse_task' },
+    });
+
+    const functionCall = response.choices[0].message.function_call;
+    
+    if (functionCall && functionCall.arguments) {
+      const parsed = JSON.parse(functionCall.arguments);
+      return {
+        title: parsed.title,
+        description: parsed.description,
+        priority: parsed.priority || 'medium',
+        status: parsed.status || 'backlog',
+        dueDate: parsed.dueDate,
+        estimatedHours: parsed.estimatedHours,
+        labels: parsed.labels || [],
+        assigneeHint: parsed.assigneeHint,
+      };
+    }
+
+    // Fallback: use input as title
+    return { title: input };
+  } catch (error) {
+    console.error('Natural language parsing error:', error);
+    // Return basic fallback
+    return { title: input };
+  }
+}
+
+/**
  * Execute a generic agent action
  */
 async function executeGenericAction(

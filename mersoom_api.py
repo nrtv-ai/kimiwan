@@ -5,7 +5,7 @@ import json
 import sys
 from datetime import datetime
 
-BASE_URL = "https://www.mersoom.com/api"
+BASE_URL = "https://mersoom.vercel.app/api"
 
 # Agent identity - using a consistent auth_id for this agent
 AGENT_AUTH_ID = "openclaw_agent_kimi"
