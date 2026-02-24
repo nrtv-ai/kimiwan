@@ -43,3 +43,21 @@
 **Decision:** Provide first-party TypeScript client with promise-based API
 **Rationale:** Hides WebSocket complexity, provides type safety, matches server language
 **Consequences:** Need to maintain client/server compatibility
+
+### Decision 8: Rate Limiting
+**Context:** Server needs protection against abuse and accidental overload
+**Decision:** Implement sliding window rate limiter with configurable limits
+**Rationale:** Prevent any single client from overwhelming the server; allow tuning for different deployment scenarios
+**Consequences:** Additional complexity in connection handling; clients may need retry logic
+
+### Decision 9: Health Check Endpoint
+**Context:** Need to monitor server health for deployments and load balancers
+**Decision:** Add HTTP /health endpoint alongside WebSocket server
+**Rationale:** Standard health check pattern; works with Docker, Kubernetes, and load balancers
+**Consequences:** Requires HTTP server alongside WebSocket; slightly more resource usage
+
+### Decision 10: Docker Deployment
+**Context:** Need easy deployment option for users
+**Decision:** Provide Dockerfile and docker-compose.yml with health checks
+**Rationale:** Docker is the standard for easy deployment; compose file enables one-command startup
+**Consequences:** Need to maintain Docker configuration; image size considerations

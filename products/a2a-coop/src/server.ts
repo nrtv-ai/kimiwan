@@ -1,5 +1,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
+import { createServer, IncomingMessage, ServerResponse } from 'http';
 import { A2ACoop } from './index';
+import { WebSocketRateLimiter } from './rateLimiter';
 import {
   AgentId,
   TaskId,
@@ -48,7 +50,47 @@ export interface WSResponse {
 }
 
 /**
+ * Server configuration options
+ */
+export interface ServerOptions {
+  maxMessageHistory?: number;
+  enableRateLimiting?: boolean;
+  rateLimitWindowMs?: number;
+  rateLimitMaxRequests?: number;
+  enableHealthCheck?: boolean;
+}
+
+/**
+ * Health check response
+ */
+export interface HealthStatus {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  timestamp: string;
+  version: string;
+  uptime: number;
+  components: {
+    websocket: 'connected' | 'disconnected';
+    registry: 'ok' | 'error';
+    messageBus: 'ok' | 'error';
+    taskOrchestrator: 'ok' | 'error';
+  };
+  metrics: {
+    agents: number;
+    tasks: { total: number; pending: number; inProgress: number; completed: number };
+    contexts: number;
+    messages: number;
+    connections: number;
+  };
+}
+
+/**
  * A2ACoopServer provides a WebSocket API for the A2A-Coop system.
+ * 
+ * Features:
+ * - WebSocket API for real-time communication
+ * - HTTP health check endpoint
+ * - Rate limiting middleware
+ * - Connection management
  * 
  * This allows external agents and clients to:
  * - Register agents
@@ -59,16 +101,40 @@ export interface WSResponse {
  */
 export class A2ACoopServer {
   private wss: WebSocketServer;
+  private httpServer: ReturnType<typeof createServer>;
   private coop: A2ACoop;
   private clients: Map<WebSocket, ClientInfo> = new Map();
   private agentConnections: Map<AgentId, WebSocket> = new Map();
+  private rateLimiter?: WebSocketRateLimiter;
+  private options: ServerOptions;
+  private startTime: number = Date.now();
 
   constructor(
     private port: number = 8080,
-    options: { maxMessageHistory?: number } = {}
+    options: ServerOptions = {}
   ) {
-    this.coop = new A2ACoop(options);
-    this.wss = new WebSocketServer({ port });
+    this.options = {
+      maxMessageHistory: 1000,
+      enableRateLimiting: true,
+      enableHealthCheck: true,
+      ...options,
+    };
+
+    this.coop = new A2ACoop({ maxMessageHistory: this.options.maxMessageHistory });
+    
+    // Initialize rate limiter if enabled
+    if (this.options.enableRateLimiting) {
+      this.rateLimiter = new WebSocketRateLimiter({
+        windowMs: this.options.rateLimitWindowMs,
+        maxRequests: this.options.rateLimitMaxRequests,
+      });
+    }
+
+    // Create HTTP server for health checks
+    this.httpServer = createServer((req, res) => this.handleHttpRequest(req, res));
+    
+    // Create WebSocket server attached to HTTP server
+    this.wss = new WebSocketServer({ server: this.httpServer });
     this.setupWebSocketServer();
   }
 
@@ -76,7 +142,12 @@ export class A2ACoopServer {
    * Start the server
    */
   start(): void {
-    console.log(`A2A-Coop server listening on port ${this.port}`);
+    this.httpServer.listen(this.port, () => {
+      console.log(`A2A-Coop server listening on port ${this.port}`);
+      if (this.options.enableHealthCheck) {
+        console.log(`Health check available at http://localhost:${this.port}/health`);
+      }
+    });
   }
 
   /**
@@ -84,19 +155,111 @@ export class A2ACoopServer {
    */
   stop(): Promise<void> {
     return new Promise((resolve) => {
+      // Close all WebSocket connections
+      for (const [ws] of this.clients) {
+        ws.close();
+      }
+      this.clients.clear();
+      this.agentConnections.clear();
+
+      // Close servers
       this.wss.close(() => {
-        console.log('A2A-Coop server stopped');
-        resolve();
+        this.httpServer.close(() => {
+          console.log('A2A-Coop server stopped');
+          resolve();
+        });
       });
     });
   }
 
+  /**
+   * Get current health status
+   */
+  getHealthStatus(): HealthStatus {
+    const status = this.coop.getStatus();
+    return {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      version: '0.1.0',
+      uptime: Date.now() - this.startTime,
+      components: {
+        websocket: this.wss && this.httpServer.listening ? 'connected' : 'disconnected',
+        registry: 'ok',
+        messageBus: 'ok',
+        taskOrchestrator: 'ok',
+      },
+      metrics: {
+        ...status,
+        connections: this.clients.size,
+      },
+    };
+  }
+
+  private handleHttpRequest(req: IncomingMessage, res: ServerResponse): void {
+    // Enable CORS
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+      res.writeHead(200);
+      res.end();
+      return;
+    }
+
+    const url = req.url || '/';
+
+    // Health check endpoint
+    if (url === '/health' && this.options.enableHealthCheck) {
+      const health = this.getHealthStatus();
+      res.setHeader('Content-Type', 'application/json');
+      res.writeHead(200);
+      res.end(JSON.stringify(health, null, 2));
+      return;
+    }
+
+    // Root endpoint - basic info
+    if (url === '/') {
+      res.setHeader('Content-Type', 'application/json');
+      res.writeHead(200);
+      res.end(JSON.stringify({
+        name: 'A2A-Coop',
+        version: '0.1.0',
+        description: 'Agent-to-Agent Collaboration Engine',
+        endpoints: {
+          websocket: `ws://localhost:${this.port}`,
+          health: `http://localhost:${this.port}/health`,
+        },
+      }, null, 2));
+      return;
+    }
+
+    // 404 for unknown paths
+    res.writeHead(404);
+    res.end(JSON.stringify({ error: 'Not found' }));
+  }
+
   private setupWebSocketServer(): void {
     this.wss.on('connection', (ws: WebSocket) => {
+      // Check rate limit
+      if (this.rateLimiter && !this.rateLimiter.checkWebSocketLimit(ws)) {
+        const remainingTime = this.rateLimiter.getWebSocketTimeUntilReset(ws);
+        this.sendError(ws, `Rate limit exceeded. Try again in ${Math.ceil(remainingTime / 1000)}s`, 'connection');
+        ws.close(1008, 'Rate limit exceeded');
+        return;
+      }
+
       console.log('New client connected');
       this.clients.set(ws, { subscriptions: new Set() });
 
       ws.on('message', (data: Buffer) => {
+        // Check rate limit for each message
+        if (this.rateLimiter && !this.rateLimiter.checkWebSocketLimit(ws)) {
+          const remainingTime = this.rateLimiter.getWebSocketTimeUntilReset(ws);
+          this.sendError(ws, `Rate limit exceeded. Try again in ${Math.ceil(remainingTime / 1000)}s`, 'rate_limit');
+          return;
+        }
+
         try {
           const message: WSMessage = JSON.parse(data.toString());
           this.handleMessage(ws, message);

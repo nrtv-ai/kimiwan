@@ -1,5 +1,6 @@
 import { A2ACoopServer } from '../src/server';
 import WebSocket from 'ws';
+import http from 'http';
 
 describe('A2ACoopServer', () => {
   let server: A2ACoopServer;
@@ -35,6 +36,78 @@ describe('A2ACoopServer', () => {
       ws.send(JSON.stringify(message));
     });
   }
+
+  describe('health check', () => {
+    it('should return health status via HTTP', async () => {
+      // Wait for server to be ready
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const response = await new Promise<http.IncomingMessage & { body: any }>((resolve, reject) => {
+        const req = http.get(`http://localhost:${port}/health`, (res) => {
+          let data = '';
+          res.on('data', chunk => data += chunk);
+          res.on('end', () => {
+            resolve({ ...res, body: JSON.parse(data) } as any);
+          });
+        });
+        req.on('error', reject);
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body.status).toBe('healthy');
+      expect(response.body.version).toBe('0.1.0');
+      expect(response.body.components).toBeDefined();
+      expect(response.body.metrics).toBeDefined();
+    });
+
+    it('should return server info at root path', async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const response = await new Promise<http.IncomingMessage & { body: any }>((resolve, reject) => {
+        const req = http.get(`http://localhost:${port}/`, (res) => {
+          let data = '';
+          res.on('data', chunk => data += chunk);
+          res.on('end', () => {
+            resolve({ ...res, body: JSON.parse(data) } as any);
+          });
+        });
+        req.on('error', reject);
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body.name).toBe('A2A-Coop');
+      expect(response.body.endpoints).toBeDefined();
+    });
+
+    it('should return 404 for unknown paths', async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const response = await new Promise<http.IncomingMessage>((resolve, reject) => {
+        const req = http.get(`http://localhost:${port}/unknown`, (res) => {
+          resolve(res);
+        });
+        req.on('error', reject);
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return health status via WebSocket', async () => {
+      const ws = await createClient();
+
+      const response = await sendAndWait(ws, {
+        id: '1',
+        type: 'status.get',
+        payload: {},
+      });
+
+      expect(response.payload.status).toBeDefined();
+      expect(typeof response.payload.status.agents).toBe('number');
+      expect(typeof response.payload.status.tasks).toBe('object');
+
+      ws.close();
+    });
+  });
 
   describe('agent operations', () => {
     it('should register an agent', async () => {
@@ -197,20 +270,49 @@ describe('A2ACoopServer', () => {
   });
 
   describe('status', () => {
-    it('should return system status', async () => {
-      const ws = await createClient();
+    // Tests moved to health check section
+  });
 
-      const response = await sendAndWait(ws, {
+  describe('rate limiting', () => {
+    it('should enforce rate limits', async () => {
+      const limitedServer = new A2ACoopServer(port + 1000, {
+        enableRateLimiting: true,
+        rateLimitWindowMs: 60000,
+        rateLimitMaxRequests: 2,
+      });
+      limitedServer.start();
+      
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const ws = await new Promise<WebSocket>((resolve, reject) => {
+        const client = new WebSocket(`ws://localhost:${port + 1000}`);
+        client.on('open', () => resolve(client));
+        client.on('error', reject);
+      });
+
+      // First two requests should succeed
+      ws.send(JSON.stringify({
         id: '1',
         type: 'status.get',
         payload: {},
+      }));
+
+      ws.send(JSON.stringify({
+        id: '2',
+        type: 'status.get',
+        payload: {},
+      }));
+
+      // Wait for responses
+      let responses: any[] = [];
+      ws.on('message', (data) => {
+        responses.push(JSON.parse(data.toString()));
       });
 
-      expect(response.payload.status).toBeDefined();
-      expect(typeof response.payload.status.agents).toBe('number');
-      expect(typeof response.payload.status.tasks).toBe('object');
+      await new Promise(resolve => setTimeout(resolve, 200));
 
       ws.close();
+      await limitedServer.stop();
     });
   });
 

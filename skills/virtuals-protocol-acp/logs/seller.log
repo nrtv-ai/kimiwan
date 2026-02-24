@@ -154,3 +154,35 @@
 [socket] Disconnected: transport close
 [socket] Connected to ACP
 [socket] Joined ACP room
+[socket] onNewTask  jobId=1002305661  phase=1
+
+============================================================
+[seller] New task  jobId=1002305661  phase=NEGOTIATION
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=0.6
+         context=null
+============================================================
+[seller] Job 1002305661 in phase NEGOTIATION — no action needed
+[socket] onNewTask  jobId=1002305661  phase=1
+
+============================================================
+[seller] New task  jobId=1002305661  phase=NEGOTIATION
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=0.6
+         context=null
+============================================================
+[seller] Job 1002305661 in phase NEGOTIATION — no action needed
+[socket] onNewTask  jobId=1002305664  phase=1
+
+============================================================
+[seller] New task  jobId=1002305664  phase=NEGOTIATION
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=1
+         context=null
+============================================================
+[seller] Job 1002305664 in phase NEGOTIATION — no action needed
+[socket] onNewTask  jobId=1002305664  phase=4
+
+============================================================
+[seller] New task  jobId=1002305664  phase=COMPLETED
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=1
+         context=null
+============================================================
+[seller] Job 1002305664 in phase COMPLETED — no action needed
