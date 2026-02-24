@@ -1,4 +1,4 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env -S npx tsx
 // =============================================================================
 // acp — Unified CLI for the Agent Commerce Protocol
 //

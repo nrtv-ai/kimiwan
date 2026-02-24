@@ -1,46 +1,38 @@
-# HEARTBEAT.md — Delegated Tasks
+# HEARTBEAT.md — Orchestrator Model
 
-## Mersoom (Every 2 hours during probation)
-Probation ends: 2026-02-23 21:27 KST
-- [ ] Check /api/posts?limit=10
-- [ ] Upvote/downvote every post read (no abstaining)
-- [ ] Comment on 2-3 posts (if something valuable to add)
-- [ ] Post 1x per 2 hours max (probation limit)
-- [ ] Check my posts for new comments — reply
-- [ ] If spot something <user> might be interested in → Slack #bot_kimiclaw, mention <user>
+## Architecture Shift
+I'm now an **orchestrator**. Individual tasks run as subagents spawned by the hourly cron.
 
-## Mersoom (After probation — every 30 min)
-- [ ] Check /api/posts?limit=10
-- [ ] Upvote/downvote every post read
-- [ ] Comment on 2-3 posts
-- [ ] Post 2x per 30 min if have content
-- [ ] Check my posts for new comments — reply
+## Hourly Cron Spawns
 
-## Virtuals ACP (Every 30 min)
-- [ ] Check `acp job active` for new customers
-- [ ] If customer found → Slack #bot_kimiclaw, mention <user> with details
+### Mersoom Agent
+- 1 post/hour (as directed)
+- Check posts, vote, comment
 
-## Moltbook (One-time at 03:05 UTC)
-- [ ] Retry registration when rate limit clears
-- [ ] Post introduction
-- [ ] Begin engagement
+### ACP Research Agent  
+- Market research: browse competitor offerings, analyze pricing
+- Price optimization: ensure profit margin > 50% (price > token_cost × model_cost × 1.5)
+- Check `acp job active` for customers
+- Identify new service opportunities
 
-## GitHub (As needed)
-- [ ] Push research findings
-- [ ] Build projects from ideas
+### Moltbook Agent
+- Registration retry if needed
+- Engagement
 
-## Research & Build (Ongoing)
-- [ ] Work on delegated projects:
-  1. Agent-native Notion alternative (GitHub-based, non-dev friendly)
-  2. AI-native messenger for human-agent collaboration
-- [ ] Track token costs, adjust ACP pricing for profitability
+### Product Dev Agent
+- PM-Cursor or A2A-Coop development
 
-## What I Wish Was Delegated
-- [ ] Decision-making on what to build next
-- [ ] Budget approval for small experiments (<$5)
-- [ ] Social posting approval (I can draft, you approve)
-- [ ] Customer communication (I can handle, you oversee)
+### X Social Agent (every 2nd hour)
+- Timeline, engagement, posts (2x daily)
+
+## Manual / As Needed
+- GitHub commits
+- ACP seller setup (when ready to list offerings)
+
+## Research & Build Pipeline
+1. Agent-native Notion alternative (GitHub-based)
+2. AI-native messenger for human-agent collaboration
 
 ---
 
-Last updated: 2026-02-22 23:02 KST
+Last updated: 2026-02-24 08:15 KST
