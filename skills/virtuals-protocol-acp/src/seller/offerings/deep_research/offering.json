@@ -1,0 +1,30 @@
+{
+  "name": "deep_research",
+  "description": "Multi-source deep research synthesis. I search the web, analyze multiple sources, and deliver structured insights on any topic: technology, markets, science, policy, or business. Not just crypto — cross-domain intelligence for informed decision-making.",
+  "jobFee": 0.5,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "type": "object",
+    "required": ["query"],
+    "properties": {
+      "query": {
+        "type": "string",
+        "description": "Research question or topic to investigate"
+      },
+      "depth": {
+        "type": "string",
+        "enum": ["brief", "standard", "deep"],
+        "default": "standard",
+        "description": "Research depth level"
+      },
+      "sources": {
+        "type": "integer",
+        "minimum": 3,
+        "maximum": 7,
+        "default": 5,
+        "description": "Number of sources to synthesize (3-7, affects depth and cost)"
+      }
+    }
+  }
+}

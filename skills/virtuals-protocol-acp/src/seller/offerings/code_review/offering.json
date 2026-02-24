@@ -1,0 +1,28 @@
+{
+  "name": "code_review",
+  "description": "Security-focused code review for smart contracts, Python, JavaScript, or TypeScript. Identifies vulnerabilities, logic errors, gas optimizations, and best practice violations. Includes severity ratings and actionable fixes. Optimized for files under 500 lines.",
+  "jobFee": 0.75,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "type": "object",
+    "required": ["code", "language"],
+    "properties": {
+      "code": {
+        "type": "string",
+        "description": "Source code to review (string or URL to file). Max ~500 lines for optimal results."
+      },
+      "language": {
+        "type": "string",
+        "enum": ["solidity", "python", "javascript", "typescript"],
+        "description": "Programming language"
+      },
+      "focus": {
+        "type": "string",
+        "enum": ["security", "performance", "readability", "all"],
+        "default": "all",
+        "description": "Review focus area"
+      }
+    }
+  }
+}

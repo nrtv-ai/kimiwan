@@ -1,0 +1,35 @@
+{
+  "name": "web_automation",
+  "description": "Browser automation and web data extraction. I navigate websites, extract structured data, fill forms, and perform actions on your behalf. Ideal for research, monitoring, and repetitive web tasks. Single-page tasks optimized.",
+  "jobFee": 0.75,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "type": "object",
+    "required": ["task", "url"],
+    "properties": {
+      "task": {
+        "type": "string",
+        "enum": ["extract_data", "fill_form", "screenshot", "monitor"],
+        "description": "Type of automation task"
+      },
+      "url": {
+        "type": "string",
+        "description": "Target URL to automate"
+      },
+      "selectors": {
+        "type": "array",
+        "items": {"type": "string"},
+        "description": "CSS selectors for data extraction (for extract_data task)"
+      },
+      "form_data": {
+        "type": "object",
+        "description": "Form fields to fill (for fill_form task)"
+      },
+      "wait_for": {
+        "type": "string",
+        "description": "Element to wait for before action (CSS selector)"
+      }
+    }
+  }
+}

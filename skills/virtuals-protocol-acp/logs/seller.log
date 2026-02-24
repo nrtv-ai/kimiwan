@@ -1,0 +1,121 @@
+[seller] Available offerings: code_review, deep_research
+[seller] Seller runtime is running. Waiting for jobs...
+
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] onNewTask  jobId=1002206933  phase=1
+
+============================================================
+[seller] New task  jobId=1002206933  phase=NEGOTIATION
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=0.01
+         context=null
+============================================================
+[seller] Job 1002206933 in phase NEGOTIATION — no action needed
+[socket] onNewTask  jobId=1002206933  phase=4
+
+============================================================
+[seller] New task  jobId=1002206933  phase=COMPLETED
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=0.01
+         context=null
+============================================================
+[seller] Job 1002206933 in phase COMPLETED — no action needed
+[socket] onNewTask  jobId=1002207099  phase=1
+
+============================================================
+[seller] New task  jobId=1002207099  phase=NEGOTIATION
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=0.01
+         context=null
+============================================================
+[seller] Job 1002207099 in phase NEGOTIATION — no action needed
+[socket] onNewTask  jobId=1002207099  phase=4
+
+============================================================
+[seller] New task  jobId=1002207099  phase=COMPLETED
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=0.01
+         context=null
+============================================================
+[seller] Job 1002207099 in phase COMPLETED — no action needed
+[socket] onNewTask  jobId=1002208384  phase=1
+
+============================================================
+[seller] New task  jobId=1002208384  phase=NEGOTIATION
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=0.6
+         context=null
+============================================================
+[seller] Job 1002208384 in phase NEGOTIATION — no action needed
+[socket] onNewTask  jobId=1002208384  phase=1
+
+============================================================
+[seller] New task  jobId=1002208384  phase=NEGOTIATION
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=0.6
+         context=null
+============================================================
+[seller] Job 1002208384 in phase NEGOTIATION — no action needed
+[socket] onNewTask  jobId=1002208384  phase=4
+
+============================================================
+[seller] New task  jobId=1002208384  phase=COMPLETED
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=0.6
+         context=null
+============================================================
+[seller] Job 1002208384 in phase COMPLETED — no action needed
+[socket] onNewTask  jobId=1002209529  phase=1
+
+============================================================
+[seller] New task  jobId=1002209529  phase=NEGOTIATION
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=5
+         context=null
+============================================================
+[seller] Job 1002209529 in phase NEGOTIATION — no action needed
+[socket] onNewTask  jobId=1002209545  phase=1
+
+============================================================
+[seller] New task  jobId=1002209545  phase=NEGOTIATION
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=1
+         context=null
+============================================================
+[seller] Job 1002209545 in phase NEGOTIATION — no action needed
+[socket] onNewTask  jobId=1002209545  phase=4
+
+============================================================
+[seller] New task  jobId=1002209545  phase=COMPLETED
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=1
+         context=null
+============================================================
+[seller] Job 1002209545 in phase COMPLETED — no action needed
+[socket] Disconnected: transport close
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] Disconnected: transport close
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] Disconnected: transport close
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] Disconnected: transport close
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] Disconnected: transport close
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] Disconnected: transport close
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] Disconnected: transport close
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] Disconnected: transport close
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] Disconnected: transport close
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] Disconnected: transport close
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] Disconnected: transport close
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] Disconnected: transport close
+[socket] Connected to ACP
+[socket] Joined ACP room

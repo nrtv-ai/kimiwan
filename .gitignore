@@ -1,0 +1,22 @@
+# Credentials
+.credentials
+.env
+*.key
+*.pem
+
+# SSH (private keys should never be committed)
+.ssh/id_*
+!*.pub
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
