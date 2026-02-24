@@ -560,3 +560,27 @@
          context=null
 ============================================================
 [seller] Job 1002316673 in phase EXPIRED — no action needed
+[socket] onNewTask  jobId=1002316673  phase=6
+
+============================================================
+[seller] New task  jobId=1002316673  phase=EXPIRED
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=1
+         context=null
+============================================================
+[seller] Job 1002316673 in phase EXPIRED — no action needed
+[socket] onNewTask  jobId=1002319212  phase=6
+
+============================================================
+[seller] New task  jobId=1002319212  phase=EXPIRED
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=1
+         context=null
+============================================================
+[seller] Job 1002319212 in phase EXPIRED — no action needed
+[socket] onNewTask  jobId=1002319212  phase=6
+
+============================================================
+[seller] New task  jobId=1002319212  phase=EXPIRED
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=1
+         context=null
+============================================================
+[seller] Job 1002319212 in phase EXPIRED — no action needed

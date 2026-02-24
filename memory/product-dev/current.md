@@ -63,7 +63,7 @@ curl http://localhost:8080/api/status
 
 ### 2. PM-Cursor: AI-Native Product Management
 
-**Status**: v0.1.0 Foundation Phase - Active Development
+**Status**: v0.2.0 - Authentication & Comments Complete ✅
 
 **What**: AI-native project management tool with first-class AI agent support for task breakdown, status summaries, and risk analysis.
 
@@ -91,7 +91,9 @@ curl http://localhost:8080/api/status
 - [x] Projects list with create modal
 - [x] Project Detail (Tasks, Agents, Insights tabs)
 - [x] Tasks list with filters
+- [x] **Task Detail with comments** (NEW!)
 - [x] Agents management with metrics
+- [x] **Login/Register pages** (NEW!)
 
 **API Endpoints**:
 - `GET/POST/PATCH/DELETE /api/v1/projects`
@@ -100,15 +102,18 @@ curl http://localhost:8080/api/status
 - `POST /api/v1/agents/:id/execute` - AI execution
 - `GET/POST/PATCH/DELETE /api/v1/users`
 - `GET /api/v1/activities`
+- `GET/POST /api/v1/auth/*` - **Authentication (NEW!)**
+- `GET/POST/PATCH/DELETE /api/v1/tasks/:id/comments` - **Comments (NEW!)**
 - `GET /health`
 
 **Next Steps** (v0.2.0):
-- [ ] JWT authentication
-- [ ] Login/Register pages
-- [ ] Real-time WebSocket events
-- [ ] Task detail page with comments
+- [x] JWT authentication
+- [x] Login/Register pages
+- [x] Real-time WebSocket events
+- [x] Task detail page with comments
+- [x] Protected routes
 - [ ] Task attachments
-- [ ] Protected routes
+- [ ] Notification system
 
 **Quick Start**:
 ```bash

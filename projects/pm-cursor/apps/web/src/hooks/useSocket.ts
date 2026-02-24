@@ -17,8 +17,15 @@ interface CommentEvent {
   [key: string]: any;
 }
 
+interface AttachmentEvent {
+  id: string;
+  taskId: string;
+  [key: string]: any;
+}
+
 type TaskEventHandler = (task: TaskEvent) => void;
 type CommentEventHandler = (comment: CommentEvent) => void;
+type AttachmentEventHandler = (attachment: AttachmentEvent) => void;
 
 export function useSocket() {
   const socketRef = useRef<Socket | null>(null);

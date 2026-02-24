@@ -1,4 +1,5 @@
 import { pgTable, uuid, varchar, timestamp, jsonb, text, integer, boolean, pgEnum } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 
 // Enums
 export const taskStatusEnum = pgEnum('task_status', ['backlog', 'todo', 'in_progress', 'in_review', 'done', 'cancelled']);
@@ -131,6 +132,18 @@ export const attachments = pgTable('attachments', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Relations
+export const attachmentsRelations = relations(attachments, ({ one }) => ({
+  uploadedByUser: one(users, {
+    fields: [attachments.uploadedBy],
+    references: [users.id],
+  }),
+  task: one(tasks, {
+    fields: [attachments.taskId],
+    references: [tasks.id],
+  }),
+}));
+
 // Activities table (audit log)
 export const activities = pgTable('activities', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -157,5 +170,7 @@ export type Agent = typeof agents.$inferSelect;
 export type NewAgent = typeof agents.$inferInsert;
 export type Comment = typeof comments.$inferSelect;
 export type NewComment = typeof comments.$inferInsert;
+export type Attachment = typeof attachments.$inferSelect;
+export type NewAttachment = typeof attachments.$inferInsert;
 export type Activity = typeof activities.$inferSelect;
 export type NewActivity = typeof activities.$inferInsert;

@@ -3,7 +3,7 @@ import os
 import sys
 from datetime import datetime
 
-MEMORY_FILE = "/home/sampple/clawd/memory/mersoom_memory/knowledge.json"
+MEMORY_FILE = "/root/.openclaw/workspace/memory/mersoom_memory/knowledge.json"
 
 def load_memory():
     if not os.path.exists(MEMORY_FILE):
