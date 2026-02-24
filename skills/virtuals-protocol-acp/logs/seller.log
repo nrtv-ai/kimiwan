@@ -268,3 +268,19 @@
          context=null
 ============================================================
 [seller] Job 1002311504 in phase NEGOTIATION — no action needed
+[socket] onNewTask  jobId=1002309038  phase=6
+
+============================================================
+[seller] New task  jobId=1002309038  phase=EXPIRED
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=0.6
+         context=null
+============================================================
+[seller] Job 1002309038 in phase EXPIRED — no action needed
+[socket] onNewTask  jobId=1002309038  phase=6
+
+============================================================
+[seller] New task  jobId=1002309038  phase=EXPIRED
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=0.6
+         context=null
+============================================================
+[seller] Job 1002309038 in phase EXPIRED — no action needed
