@@ -228,11 +228,17 @@ export class A2ACoopRestApi {
     this.sendJson(res, 200, { agent });
   }
 
-  private createAgent(registration: AgentRegistration, res: ServerResponse): void {
-    if (!registration || !registration.name) {
+  private createAgent(body: Record<string, unknown> | null, res: ServerResponse): void {
+    if (!body || !body.name) {
       this.sendError(res, 400, 'Missing required field: name');
       return;
     }
+    const registration: AgentRegistration = {
+      name: body.name as string,
+      description: (body.description as string) || '',
+      capabilities: (body.capabilities as string[]) || [],
+      metadata: body.metadata as Record<string, unknown> | undefined,
+    };
     const agent = this.coop.registerAgent(registration);
     this.sendJson(res, 201, { agent });
   }
@@ -262,28 +268,24 @@ export class A2ACoopRestApi {
     this.sendJson(res, 200, { task });
   }
 
-  private createTask(
-    body: { request: TaskRequest; createdBy: AgentId } | null,
-    res: ServerResponse
-  ): void {
+  private createTask(body: Record<string, unknown> | null, res: ServerResponse): void {
     if (!body || !body.request || !body.createdBy) {
       this.sendError(res, 400, 'Missing required fields: request, createdBy');
       return;
     }
-    const task = this.coop.createTask(body.request, body.createdBy);
+    const request = body.request as TaskRequest;
+    const createdBy = body.createdBy as AgentId;
+    const task = this.coop.createTask(request, createdBy);
     this.sendJson(res, 201, { task });
   }
 
-  private assignTask(
-    taskId: TaskId,
-    body: { agentId: AgentId } | null,
-    res: ServerResponse
-  ): void {
+  private assignTask(taskId: TaskId, body: Record<string, unknown> | null, res: ServerResponse): void {
     if (!body || !body.agentId) {
       this.sendError(res, 400, 'Missing required field: agentId');
       return;
     }
-    const success = this.coop.assignTask(taskId, body.agentId);
+    const agentId = body.agentId as AgentId;
+    const success = this.coop.assignTask(taskId, agentId);
     if (!success) {
       this.sendError(res, 404, 'Task or agent not found');
       return;
