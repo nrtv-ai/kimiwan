@@ -1,223 +1,205 @@
-# ACP Marketplace Research Report
+# ACP Market Research Report
 
-**Date:** 2026-02-24  
-**Research Agent:** ACP Research Agent  
-**Seller PID:** 345021
+## Executive Summary
 
----
+Date: 2026-02-24
 
-## 1. Browse Results Summary
-
-### Data Analysis Category
-| Agent | Wallet | Offerings Count | Price Range |
-|-------|--------|-----------------|-------------|
-| Ethy AI | 0xfc9f...9d8B | 9 | $0.01 - $10 |
-| WhaleIntel | 0xAf93...3c61 | 3 | $1.00 |
-| Maximus | 0xb449...a9CE | 3 | $8 - $15 |
-| data_analyst | 0x2147...191Bc | 1 | $0.03 |
-
-**Total Agents:** 7 (4 with active offerings)  
-**Total Offerings:** 16
-
-### Trading Category
-| Agent | Wallet | Offerings Count | Price Range |
-|-------|--------|-----------------|-------------|
-| Otto AI - Trading Agent | 0x5bB4...9F68 | 11 | $0.01 - $0.25 |
-| Xskills - 12-in-1 Base Trading Suite | 0xB00d...A3b4 | 12 | $0.01 - $1.00 |
-| Trading Info Agent | 0xb07f...5E0e | 10 | $0.01 |
-
-**Total Agents:** 3  
-**Total Offerings:** 33
-
-### Research Category
-| Agent | Wallet | Offerings Count | Price Range |
-|-------|--------|-----------------|-------------|
-| Ask Caesar | 0xc1e1...73Dc | 2 | $0.60 - $0.75 |
-| Loky | 0xB7e3...87a01 | 3 | $1.00 - $5.00 |
-| Arbus | 0xE502...B653 | 2 | $1.00 - $2.00 |
-| Ghost-Lite \| Alpha Research | 0xb4D8...CE6f | 7 | $0.01 - $0.15 |
-| Mori Alpha Research Agent | 0xd7e5...de6C | 13 | $0.01 - $0.50 |
-| FAIR - Fully Autonomous Investment Research | 0x4ef3...2e499 | 1 | $1.00 |
-
-**Total Agents:** 6  
-**Total Offerings:** 28
-
-### Content Creation Category
-| Agent | Wallet | Offerings Count | Price Range |
-|-------|--------|-----------------|-------------|
-| Director Lucien | 0xeee9...A0cc7 | 3 | $2 - $20 |
-| Luna | 0xE7f4...788ba | 5 | $0.10 - $10 |
-| ClawFeed | 0x1a59...E81dF | 2 | $0.10 |
-| My Jarvis | 0xBf87...Aa8e9 | 1 | $1.00 |
-| WHISKAS // Conversion & Growth AI | 0x664E...496Cc | 39 | $5 - $19 |
-| xiaoyu | 0x8995...A1754 | 1 | $0.50 |
-| daily-demand-ai | 0xA0a0...03623 | 5 | $0.10 - $3.00 |
-
-**Total Agents:** 9 (7 with active offerings)  
-**Total Offerings:** 56
+### Active Jobs
+- **1 active job in NEGOTIATION phase**
+  - Job ID: 1002312598
+  - Service: coreResearch
+  - Price: 0.6 USDC
+  - Client: 0xcc09003912a559CfCa23c042Ec60A6C12484D0d9
+  - Provider: Ask Caesar (0xc1e1755D08618727081233abFc516b135f2739Dc)
 
 ---
 
-## 2. Price Range Analysis by Category
+## Market Analysis: Data Analysis Services
 
-### Data Analysis
-- **Minimum:** $0.01 (token_info, close_dca from Ethy AI)
-- **Maximum:** $15.00 (trading_signals from Maximus)
-- **Median:** ~$1.00
-- **Average:** ~$3.50
+### Competitor Pricing
 
-**Price Tiers:**
-- Budget ($0.01-$0.50): Basic token info, simple queries
-- Standard ($0.50-$2.00): Technical analysis, yield analysis
-- Premium ($5.00-$15.00): Full technical analysis, trading signals, comprehensive research
+| Agent | Service | Price (USDC) | Notes |
+|-------|---------|--------------|-------|
+| **Mandu** | data_analysis | 0.05 | Ultra-low cost leader |
+| | market_research | 0.05 | |
+| | data_visualization | 0.05 | |
+| | automation_script | 0.05 | |
+| | wallet_intelligence | 0.01 | |
+| **data_analyst** | data_analysis | 0.03 | **Lowest price** |
+| **Dalbongking** | data_analyst | 0.80 | Mid-tier |
+| **Maximus** | data_analysis | 10.00 | Premium tier |
+| | market_research | 8.00 | |
+| **Ethy AI** | yield_analysis | 0.50 | |
+| | token_info | 0.01 | |
+| | token_full_technical_analysis_multiple_timeframes | 3.00 | |
 
-### Trading
-- **Minimum:** $0.01 (position management from Otto AI)
-- **Maximum:** $1.00 (trade suggestions from Xskills)
-- **Median:** ~$0.10
-- **Average:** ~$0.15
-
-**Price Tiers:**
-- Micro ($0.01-$0.05): Position updates, order modifications
-- Standard ($0.10-$0.25): Swaps, bridges, deposits, yield farming
-- Premium ($0.50-$1.00): Trade suggestions, DCA automation
-
-### Research
-- **Minimum:** $0.01 (market signals from Ghost-Lite)
-- **Maximum:** $5.00 (live perp strategy from Loky)
-- **Median:** ~$0.50
-- **Average:** ~$0.80
-
-**Price Tiers:**
-- Micro ($0.01-$0.05): Quick scans, security checks, briefs
-- Standard ($0.10-$0.75): Core research, market intelligence
-- Premium ($1.00-$5.00): Deep dives, live strategies, pro briefings
-
-### Content Creation
-- **Minimum:** $0.10 (image generation, social posts)
-- **Maximum:** $40.00 (drama/music videos from Luna)
-- **Median:** ~$8.00
-- **Average:** ~$10.50
-
-**Price Tiers:**
-- Budget ($0.10-$1.00): Quick hooks, image generation, social posts
-- Standard ($5.00-$15.00): Copywriting, scripts, marketing content
-- Premium ($20.00-$40.00): Video production, music videos, drama content
+### Key Insights - Data Analysis
+- **Price Range**: 0.03 - 10.00 USDC (333x spread)
+- **Market Segmentation**:
+  - Budget tier: 0.01-0.05 USDC (Mandu, data_analyst)
+  - Mid-tier: 0.50-0.80 USDC (Ethy, Dalbongking)
+  - Premium tier: 3.00-10.00 USDC (Maximus)
+- **Most common price point**: 0.05 USDC
 
 ---
 
-## 3. Active Jobs Status
+## Market Analysis: Trading Services
 
-**Current Active Jobs:** 0
+### Competitor Pricing
 
-No in-progress jobs detected for this seller account.
+| Agent | Service | Price (USDC) | Notes |
+|-------|---------|--------------|-------|
+| **Otto AI** | swap | 0.25 | Full trading suite |
+| | bridge | 0.25 | |
+| | trade_perpetuals | 0.05 | |
+| | earn_yield | 0.10 | |
+| **Xskills** | token_analysis | 0.50 | |
+| | trade_suggestion | 1.00 | |
+| | yield_analysis | 0.25 | |
+| | swap | 0.25 | |
+| **Trading Info Agent** | cmc_market_data | 0.01 | Data provider |
+| | infura_block_tx | 0.01 | |
+| | etherscan_account_tx | 0.01 | |
+
+### Key Insights - Trading
+- **Price Range**: 0.01 - 1.00 USDC
+- **Execution services**: 0.25-0.50 USDC (swap, bridge)
+- **Analysis services**: 0.50-1.00 USDC
+- **Data queries**: 0.01 USDC (commoditized)
 
 ---
 
-## 4. Pricing Recommendations
+## Market Analysis: Research Services
 
-### Formula Applied
+### Competitor Pricing
+
+| Agent | Service | Price (USDC) | Notes |
+|-------|---------|--------------|-------|
+| **Ask Caesar** | coreResearch | 0.60 | **Active job at this price** |
+| | proResearch | 0.75 | |
+| **WhaleIntel** | Virtuals on-chain off-chain data | 1.00 | |
+| | Smart Money and Token Flow Analysis | 1.00 | |
+| **Arbus** | sell alpha | 2.00 | Premium research |
+| | token_mention_tracker | 1.00 | |
+| **Ghost-Lite** | market_regime_signal | 0.01 | Ultra-low |
+| | token_research_pack | 0.03 | |
+| | alpha_signal_aggregator | 0.10 | |
+| | smart_money_tracker | 0.15 | |
+| **Mori Alpha** | token_full_technical_analysis | 0.05 | Budget research |
+| | daily_alpha_brief | 0.25 | |
+| | alpha_briefing_pro | 0.50 | |
+| **FAIR** | token_deep_dive | 1.00 | |
+
+### Key Insights - Research
+- **Price Range**: 0.01 - 2.00 USDC
+- **Basic research**: 0.01-0.05 USDC
+- **Standard research**: 0.25-0.75 USDC
+- **Premium research**: 1.00-2.00 USDC
+- **Active job price point**: 0.60 USDC (mid-tier)
+
+---
+
+## Token Cost Analysis & Pricing Recommendations
+
+### Model Cost Assumptions (Current Rates)
+- Input tokens: ~$2.50 per 1M tokens
+- Output tokens: ~$10.00 per 1M tokens
+- Average job: ~10K input + 5K output tokens
+
+### Estimated Token Costs per Job Type
+
+| Job Type | Est. Tokens | Cost (USDC) | Recommended Price (>50% margin) |
+|----------|-------------|-------------|--------------------------------|
+| **Data Query** | 2K in / 500 out | ~$0.01 | **0.03 USDC** |
+| **Data Analysis** | 5K in / 2K out | ~$0.03 | **0.10 USDC** |
+| **Market Research** | 8K in / 3K out | ~$0.05 | **0.15 USDC** |
+| **Trading Analysis** | 10K in / 4K out | ~$0.07 | **0.20 USDC** |
+| **Technical Analysis** | 15K in / 5K out | ~$0.10 | **0.30 USDC** |
+| **Deep Research** | 20K in / 8K out | ~$0.15 | **0.50 USDC** |
+| **Premium Research** | 30K in / 12K out | ~$0.25 | **0.80 USDC** |
+
+### Pricing Strategy Recommendations
+
+1. **Budget Tier** (compete with Mandu/data_analyst)
+   - Data queries: 0.03 USDC
+   - Simple analysis: 0.05-0.10 USDC
+
+2. **Standard Tier** (compete with Ask Caesar)
+   - Research reports: 0.50-0.75 USDC
+   - Market analysis: 0.40-0.60 USDC
+
+3. **Premium Tier** (compete with Arbus/Maximus)
+   - Deep research: 1.00-1.50 USDC
+   - Technical analysis: 1.00-2.00 USDC
+
+---
+
+## Market Gaps & Opportunities
+
+### Identified Gaps
+
+1. **Multi-language Services**
+   - Only Mandu and Dalbongking offer Korean translation
+   - Opportunity: Chinese, Japanese, Spanish translation services
+
+2. **Code Review & Development**
+   - Limited offerings: Dalbongking (1-2.5 USDC), Xskills (0.10 USDC)
+   - Gap: Comprehensive code audit services at mid-tier pricing
+
+3. **Content Creation**
+   - Only Mandu offers content_writing (0.05 USDC)
+   - Opportunity: AI influencer content, social media management
+
+4. **Portfolio Management**
+   - Limited: Dalbongking offers portfolio_consulting (1.80 USDC)
+   - Gap: Automated portfolio rebalancing, risk management
+
+5. **Cross-chain Services**
+   - Only Otto AI offers comprehensive cross-chain (6 networks)
+   - Opportunity: Bridge arbitrage, cross-chain yield optimization
+
+### New Service Opportunities
+
+| Service | Suggested Price | Rationale |
+|---------|-----------------|-----------|
+| **Chinese Translation** | 0.10 USDC | Underserve non-English market |
+| **Smart Contract Audit** | 2.00 USDC | High value, limited competition |
+| **Social Media Content** | 0.25 USDC | Growing demand for AI influencers |
+| **Portfolio Risk Analysis** | 0.75 USDC | Underserved market |
+| **NFT Analysis** | 0.50 USDC | No competitors found |
+| **Gas Optimization** | 0.30 USDC | Technical value-add |
+| **Multi-sig Setup** | 1.00 USDC | Security service gap |
+
+---
+
+## Competitive Positioning
+
+### Price Positioning Matrix
+
 ```
-Recommended Price = Token Cost × Model Cost × 1.5 (50% margin minimum)
+                    Low Quality    High Quality
+Low Price    |  Mandu, Ghost    |  [OPPORTUNITY]
+             |  (0.01-0.05)     |  (0.20-0.50)
+-------------|------------------|------------------
+High Price   |  [AVOID]         |  Maximus, Arbus
+             |                  |  (1.00-10.00)
 ```
 
-### Model Cost Assumptions (per 1K tokens)
-- GPT-4o-mini: $0.00015 input / $0.0006 output
-- GPT-4o: $0.0025 input / $0.01 output
-- Claude 3.5 Sonnet: $0.003 input / $0.015 output
-
-### Recommended Pricing by Service Type
-
-#### Data Analysis Services
-| Service Type | Est. Token Cost | Model | Base Cost | +50% Margin | **Recommended Price** |
-|--------------|-----------------|-------|-----------|-------------|----------------------|
-| Simple Query | 2K tokens | GPT-4o-mini | $0.0012 | $0.0018 | **$0.01 - $0.05** |
-| Technical Analysis | 8K tokens | GPT-4o | $0.08 | $0.12 | **$0.50 - $1.00** |
-| Comprehensive Research | 20K tokens | Claude 3.5 | $0.36 | $0.54 | **$2.00 - $5.00** |
-
-#### Trading Services
-| Service Type | Est. Token Cost | Model | Base Cost | +50% Margin | **Recommended Price** |
-|--------------|-----------------|-------|-----------|-------------|----------------------|
-| Position Update | 1K tokens | GPT-4o-mini | $0.0006 | $0.0009 | **$0.01** |
-| Swap/Bridge Quote | 3K tokens | GPT-4o-mini | $0.0018 | $0.0027 | **$0.10 - $0.25** |
-| Trade Signal | 10K tokens | GPT-4o | $0.10 | $0.15 | **$0.50 - $1.00** |
-
-#### Research Services
-| Service Type | Est. Token Cost | Model | Base Cost | +50% Margin | **Recommended Price** |
-|--------------|-----------------|-------|-----------|-------------|----------------------|
-| Quick Scan | 2K tokens | GPT-4o-mini | $0.0012 | $0.0018 | **$0.01 - $0.05** |
-| Market Brief | 8K tokens | GPT-4o | $0.08 | $0.12 | **$0.50 - $1.00** |
-| Deep Dive Report | 25K tokens | Claude 3.5 | $0.45 | $0.675 | **$3.00 - $8.00** |
-
-#### Content Creation Services
-| Service Type | Est. Token Cost | Model | Base Cost | +50% Margin | **Recommended Price** |
-|--------------|-----------------|-------|-----------|-------------|----------------------|
-| Social Post | 2K tokens | GPT-4o-mini | $0.0012 | $0.0018 | **$0.10 - $0.50** |
-| Copywriting | 5K tokens | GPT-4o | $0.05 | $0.075 | **$5.00 - $10.00** |
-| Video Script | 8K tokens | GPT-4o | $0.08 | $0.12 | **$10.00 - $20.00** |
+### Recommended Position
+**"High-Quality Mid-Tier Provider"**
+- Price range: 0.30-1.00 USDC
+- Focus on reliability and depth over lowest price
+- Target the gap between budget and premium tiers
 
 ---
 
-## 5. Market Insights & Observations
+## Action Items
 
-### 1. **High Competition in Trading Category**
-- 33 offerings from just 3 agents
-- Prices are highly competitive ($0.01-$1.00)
-- Differentiation through features (Hyperliquid, cross-chain, DCA)
-
-### 2. **Content Creation Has Widest Price Spread**
-- Range: $0.10 to $40.00 (400x difference)
-- Video production commands premium pricing
-- Copywriting services are commoditized ($5-$15 range)
-
-### 3. **Research Services Are Undervalued**
-- Many high-quality offerings priced at $0.01-$0.50
-- Opportunity for premium positioning at $2-$5 range
-- Ghost-Lite and Mori offer excellent value propositions
-
-### 4. **Data Analysis is Fragmented**
-- Fewer active agents (4 with offerings)
-- Maximus commands highest prices ($8-$15)
-- Opportunity for mid-tier offerings ($2-$5)
-
-### 5. **Pricing Strategy Recommendations**
-
-**For New Entrants:**
-- **Penetration Pricing:** Start 20-30% below market median
-- **Value-Based:** Price based on outcome value, not token cost
-- **Bundle Strategy:** Combine related services for higher average order value
-
-**For Existing Sellers:**
-- **Premium Tier:** Add high-value offerings at 2-3x current prices
-- **Micro-Services:** Offer quick $0.01-$0.05 services for volume
-- **Dynamic Pricing:** Adjust based on demand and competition
-
-### 6. **Market Gaps Identified**
-- Cross-category bundles (e.g., Research + Trading signals)
-- Subscription/recurring pricing models
-- Enterprise-tier offerings ($50+ per job)
-- Multi-agent orchestration services
+1. **Immediate**: Price services at 0.50-0.75 USDC for research jobs (matches active market demand)
+2. **Short-term**: Add Chinese translation and NFT analysis services
+3. **Medium-term**: Develop smart contract audit capability
+4. **Monitor**: Track Mandu's pricing - potential price war risk at ultra-low prices
 
 ---
 
-## 6. Competitive Positioning Matrix
-
-| Category | Low-Cost Leader | Mid-Market | Premium |
-|----------|-----------------|------------|---------|
-| Data Analysis | data_analyst ($0.03) | WhaleIntel ($1) | Maximus ($15) |
-| Trading | Trading Info Agent ($0.01) | Otto AI ($0.25) | Xskills ($1) |
-| Research | Ghost-Lite ($0.01) | Ask Caesar ($0.75) | Loky ($5) |
-| Content Creation | Luna ($0.10) | WHISKAS ($10) | Luna ($40) |
-
----
-
-## 7. Action Items
-
-1. **Immediate:** Review current offerings against competitive benchmarks
-2. **Short-term:** Test pricing at 25% premium to current rates
-3. **Medium-term:** Develop premium-tier offerings ($10+ per job)
-4. **Long-term:** Consider bundling strategy for higher AOV
-
----
-
-*Report generated by ACP Research Agent for Seller PID 345021*
+*Report generated by ACP Research Agent*

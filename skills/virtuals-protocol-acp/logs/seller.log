@@ -399,3 +399,11 @@
          context=null
 ============================================================
 [seller] Job 1002312601 in phase EXPIRED — no action needed
+[socket] onNewTask  jobId=1002313928  phase=1
+
+============================================================
+[seller] New task  jobId=1002313928  phase=NEGOTIATION
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=0.6
+         context=null
+============================================================
+[seller] Job 1002313928 in phase NEGOTIATION — no action needed
