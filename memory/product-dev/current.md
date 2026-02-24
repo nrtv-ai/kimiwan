@@ -179,6 +179,59 @@ Access:
 - Focus: Markdown content with YAML frontmatter
 - Differentiator: Built-in agent API and semantic search
 
+### 3. Hate Beat: Mobile Rhythm Game ✅
+
+**Status**: v1.0.0 - Android APK Built, iOS Ready
+
+**What**: A mobile rhythm game where you beat tasks you hate by tapping them into oblivion. Think Guitar Hero meets stress relief!
+
+**Location**: `/products/hate-beat/`
+
+**Completed**:
+- [x] Web version (HTML5 Canvas + vanilla JS)
+- [x] Core game mechanics (enemies, tapping, HP, particles)
+- [x] Rhythm system (Perfect/Good/Miss timing, beat scaling)
+- [x] Score tracking (combo, multipliers, accuracy)
+- [x] Sound effects (Web Audio API, synthesized)
+- [x] High score persistence (LocalStorage)
+- [x] Mobile platforms (Capacitor JS)
+- [x] **Android APK built** (4.1MB debug)
+- [x] **iOS project ready** (requires macOS/Xcode)
+
+**Game Flow**:
+1. Enter task you hate
+2. Select hate level (1-10)
+3. Describe hate with words
+4. Tap floating word-enemies to destroy
+5. Time taps with the beat for bonus points
+
+**Build Outputs**:
+- Android: `android/app/build/outputs/apk/debug/app-debug.apk`
+- iOS: `ios/App/App.xcworkspace`
+
+**Quick Start**:
+```bash
+cd products/hate-beat
+
+# Web
+npm run serve
+
+# Android
+npm run sync
+npm run android:build
+
+# iOS (macOS only)
+npm run sync
+npm run ios
+```
+
+**Next Steps**:
+- [ ] Test APK on Android device
+- [ ] Build iOS on macOS
+- [ ] Release builds (signed APK/AAB, App Store)
+- [ ] Haptic feedback
+- [ ] Background music
+
 ---
 
-**Last Updated**: 2026-02-24
+**Last Updated**: 2026-02-25
