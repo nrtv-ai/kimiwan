@@ -302,13 +302,66 @@
         .perfect { color: #ffd700; text-shadow: 0 0 10px #ffd700; }
         .good { color: #4ecca3; text-shadow: 0 0 10px #4ecca3; }
         .miss { color: #e94560; text-shadow: 0 0 10px #e94560; }
+        .high-score-badge {
+            background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+        }
+        .high-scores-list {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            max-width: 350px;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .high-score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.9rem;
+        }
+        .high-score-item:last-child { border-bottom: none; }
+        .high-score-rank { color: #ffd700; font-weight: bold; width: 30px; }
+        .high-score-task { flex: 1; text-align: left; padding: 0 10px; color: #aaa; }
+        .high-score-points { color: #4ecca3; font-weight: bold; }
+        .sound-toggle {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(233, 69, 96, 0.3);
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            font-size: 1.2rem;
+        }
+        .sound-toggle:hover { background: rgba(255,255,255,0.2); }
     </style>
 </head>
 <body>
+    <!-- Sound Toggle -->
+    <div class="sound-toggle" id="soundToggle" onclick="toggleSound()">🔊</div>
+    
     <!-- Screen 1: Task Input -->
     <div id="screen1" class="screen active">
         <h1>HATE BEAT</h1>
         <p class="subtitle">What task do you absolutely hate?</p>
+        <div class="high-score-badge" id="highScoreBadge" style="display: none;">🏆 High Score: <span id="highScoreValue">0</span></div>
+        <div class="high-scores-list" id="highScoresList" style="display: none;"></div>
         <input type="text" id="taskInput" placeholder="e.g., doing taxes, cleaning dishes..." maxlength="50">
         <button onclick="goToScreen2()">Continue →</button>
     </div>
@@ -825,6 +878,7 @@
             const lastBeat = Math.floor((gameState.gameTime - deltaTime) / gameState.beatInterval);
             if (beatNow > lastBeat) {
                 triggerBeat();
+                AudioSys.playBeat();
             }
             
             // Clear canvas with trail effect
@@ -876,14 +930,17 @@
                         type = 'perfect';
                         gameState.perfectHits++;
                         gameState.combo++;
+                        AudioSys.playPerfect();
                     } else if (timing === 'good') {
                         points = 100;
                         gameState.combo++;
+                        AudioSys.playGood();
                     } else {
                         points = 50;
                         text = 'MISS';
                         type = 'miss';
                         gameState.combo = 0;
+                        AudioSys.playMiss();
                     }
                     
                     if (gameState.combo > gameState.maxCombo) {
@@ -899,8 +956,11 @@
                     
                     if (gameState.enemies[i].damage()) {
                         createParticles(gameState.enemies[i].x, gameState.enemies[i].y, gameState.enemies[i].hue);
+                        AudioSys.playDestroy();
                         gameState.enemies.splice(i, 1);
                         gameState.wordsDestroyed++;
+                    } else {
+                        AudioSys.playHit();
                     }
                     updateUI();
                     break;
@@ -930,6 +990,12 @@
                 ? Math.round((gameState.perfectHits / gameState.totalHits) * 100) 
                 : 0;
             
+            // Save high score
+            HighScores.add(gameState.score, gameState.task, gameState.hateLevel, gameState.maxCombo, accuracy);
+            
+            // Play victory sound
+            AudioSys.playVictory();
+            
             document.getElementById('victoryTask').textContent = gameState.task;
             document.getElementById('finalScore').textContent = Math.floor(gameState.score);
             document.getElementById('maxCombo').textContent = gameState.maxCombo;
@@ -937,6 +1003,46 @@
             document.getElementById('accuracy').textContent = accuracy + '%';
             
             document.getElementById('victoryScreen').classList.add('active');
+        }
+
+        function showGameOver() {
+            gameState.isPlaying = false;
+            cancelAnimationFrame(animationId);
+            
+            AudioSys.playGameOver();
+            
+            document.getElementById('gameOverScore').textContent = Math.floor(gameState.score);
+            document.getElementById('enemiesDestroyed').textContent = gameState.wordsDestroyed;
+            document.getElementById('gameOverScreen').classList.add('active');
+        }
+
+        function toggleSound() {
+            AudioSys.enabled = !AudioSys.enabled;
+            document.getElementById('soundToggle').textContent = AudioSys.enabled ? '🔊' : '🔇';
+        }
+
+        function displayHighScores() {
+            const scores = HighScores.get();
+            const badge = document.getElementById('highScoreBadge');
+            const list = document.getElementById('highScoresList');
+            
+            if (scores.length === 0) {
+                badge.style.display = 'none';
+                list.style.display = 'none';
+                return;
+            }
+            
+            badge.style.display = 'block';
+            document.getElementById('highScoreValue').textContent = scores[0].score;
+            
+            list.style.display = 'block';
+            list.innerHTML = scores.slice(0, 5).map((s, i) => `
+                <div class="high-score-item">
+                    <span class="high-score-rank">#${i + 1}</span>
+                    <span class="high-score-task" title="${s.task}">${s.task}</span>
+                    <span class="high-score-points">${s.score}</span>
+                </div>
+            `).join('');
         }
 
         function resetGame() {
@@ -969,7 +1075,8 @@
                 lastBeatTime: 0,
                 beatInterval: 500,
                 isPlaying: false,
-                gameTime: 0
+                gameTime: 0,
+                soundEnabled: gameState.soundEnabled
             };
             
             // Reset UI
@@ -980,9 +1087,23 @@
             document.getElementById('continueBtn2').disabled = true;
             selectedHate = 0;
             
+            // Refresh high scores display
+            displayHighScores();
+            
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             showScreen('screen1');
         }
+
+        // Initialize audio on first interaction
+        document.addEventListener('click', () => {
+            AudioSys.init();
+        }, { once: true });
+        document.addEventListener('touchstart', () => {
+            AudioSys.init();
+        }, { once: true });
+        
+        // Load high scores on page load
+        window.addEventListener('load', displayHighScores);
 
         // Keyboard support
         document.addEventListener('keydown', (e) => {
