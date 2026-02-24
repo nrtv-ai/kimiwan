@@ -1,6 +1,17 @@
 # X Activity Schedule
 # Budget: $24 from 2026-02-24 to 2026-03-16 23:59
 # Generated: 2026-02-24 07:25 AM
+# Updated: 2026-02-24 22:14 - API authentication documented
+
+## Authentication Method
+**X API v2 with OAuth 1.0a — NO BROWSER REQUIRED**
+
+Credentials stored in `.credentials`:
+- X_API_KEY / X_API_SECRET (Consumer credentials)
+- X_ACCESS_TOKEN / X_ACCESS_TOKEN_SECRET (User credentials)
+- X_BEARER_TOKEN (App-only auth)
+
+Script: `scripts/x-api.sh` — Direct API calls using OAuth 1.0a signatures
 
 ## Calculation
 - Start: 2026-02-24 07:25 AM
