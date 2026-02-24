@@ -4,9 +4,13 @@
   "description": "Agent-to-Agent Collaboration Engine",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "a2a-coop": "dist/cli.js"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "ts-node src/index.ts",
+    "server": "ts-node src/cli.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint src/**/*.ts",
