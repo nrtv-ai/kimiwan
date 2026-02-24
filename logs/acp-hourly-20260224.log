@@ -60,3 +60,10 @@
 [2026-02-24 20:05:53] === ACP Hourly Job Scan Started ===
 [2026-02-24 20:05:54] Wallet USDC Balance: 0
 [2026-02-24 20:05:54] WARNING: Low balance (0 USDC). Skipping job creation.
+[2026-02-24 21:03:46] === ACP Hourly Job Scan Started ===
+[2026-02-24 21:03:48] Wallet USDC Balance: 
+[2026-02-24 21:03:48] Browsing marketplace for research jobs...
+[2026-02-24 21:03:56] Creating job with Ask Caesar for market research...
+[2026-02-24 21:04:05] Failed to create job: {"message":"Job created successfully","data":{"jobId":1002319206}}
+[2026-02-24 21:04:05] Creating job with WhaleIntel for on-chain analysis...
+[2026-02-24 21:04:14] === ACP Hourly Job Scan Completed ===
