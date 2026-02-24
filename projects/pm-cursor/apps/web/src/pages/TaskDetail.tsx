@@ -10,14 +10,12 @@ import {
   Clock,
   MessageSquare,
   Paperclip,
-  MoreVertical,
   Edit2,
   Trash2,
   Send,
   CheckCircle2,
   Circle,
   Clock4,
-  AlertTriangle,
   X,
 } from 'lucide-react';
 import { api } from '../lib/api';
@@ -54,11 +52,14 @@ interface Comment {
   content: string;
   taskId: string;
   authorId: string;
+  authorType: string;
   createdAt: string;
+  editedAt: string | null;
   author?: {
     id: string;
     name: string;
     email: string;
+    avatarUrl: string | null;
   };
 }
 
@@ -82,13 +83,15 @@ export function TaskDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { joinProject, leaveProject, onTaskUpdated, onTaskDeleted } = useSocket();
+  const { joinProject, leaveProject, onTaskUpdated, onTaskDeleted, onCommentCreated, onCommentUpdated, onCommentDeleted } = useSocket();
   
   const [isEditing, setIsEditing] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [editForm, setEditForm] = useState<Partial<Task>>({});
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editCommentContent, setEditCommentContent] = useState('');
 
   const { data: task, isLoading } = useQuery({
     queryKey: ['task', id],
@@ -99,11 +102,11 @@ export function TaskDetail() {
     enabled: !!id,
   });
 
-  const { data: comments } = useQuery({
+  const { data: comments, isLoading: commentsLoading } = useQuery({
     queryKey: ['task-comments', id],
     queryFn: async (): Promise<Comment[]> => {
-      // TODO: Implement comments API
-      return [];
+      const res = await api.get(`/tasks/${id}/comments`);
+      return res.data.data || [];
     },
     enabled: !!id,
   });
@@ -149,6 +152,39 @@ export function TaskDetail() {
     };
   }, [id, onTaskUpdated, onTaskDeleted, queryClient, navigate]);
 
+  // Listen for real-time comment updates
+  useEffect(() => {
+    const unsubscribeCreated = onCommentCreated((newComment) => {
+      if (newComment.taskId === id) {
+        queryClient.invalidateQueries({ queryKey: ['task-comments', id] });
+      }
+    });
+
+    const unsubscribeUpdated = onCommentUpdated((updatedComment) => {
+      if (updatedComment.taskId === id) {
+        queryClient.setQueryData(['task-comments', id], (old: Comment[] | undefined) => {
+          if (!old) return old;
+          return old.map(c => c.id === updatedComment.id ? { ...c, ...updatedComment } : c);
+        });
+      }
+    });
+
+    const unsubscribeDeleted = onCommentDeleted((deletedComment) => {
+      if (deletedComment.taskId === id) {
+        queryClient.setQueryData(['task-comments', id], (old: Comment[] | undefined) => {
+          if (!old) return old;
+          return old.filter(c => c.id !== deletedComment.id);
+        });
+      }
+    });
+
+    return () => {
+      unsubscribeCreated();
+      unsubscribeUpdated();
+      unsubscribeDeleted();
+    };
+  }, [id, onCommentCreated, onCommentUpdated, onCommentDeleted, queryClient]);
+
   const updateMutation = useMutation({
     mutationFn: async (data: Partial<Task>) => {
       const res = await api.patch(`/tasks/${id}`, data);
@@ -173,11 +209,32 @@ export function TaskDetail() {
 
   const commentMutation = useMutation({
     mutationFn: async (content: string) => {
-      // TODO: Implement comments API
-      console.log('Adding comment:', content);
+      const res = await api.post(`/tasks/${id}/comments`, { content });
+      return res.data.data;
     },
     onSuccess: () => {
       setNewComment('');
+      queryClient.invalidateQueries({ queryKey: ['task-comments', id] });
+    },
+  });
+
+  const updateCommentMutation = useMutation({
+    mutationFn: async ({ commentId, content }: { commentId: string; content: string }) => {
+      const res = await api.patch(`/tasks/${id}/comments/${commentId}`, { content });
+      return res.data.data;
+    },
+    onSuccess: () => {
+      setEditingCommentId(null);
+      setEditCommentContent('');
+      queryClient.invalidateQueries({ queryKey: ['task-comments', id] });
+    },
+  });
+
+  const deleteCommentMutation = useMutation({
+    mutationFn: async (commentId: string) => {
+      await api.delete(`/tasks/${id}/comments/${commentId}`);
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['task-comments', id] });
     },
   });
@@ -317,7 +374,7 @@ export function TaskDetail() {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <MessageSquare className="w-5 h-5" />
-              Comments
+              Comments ({comments?.length || 0})
             </h2>
 
             <div className="space-y-4">
@@ -342,10 +399,14 @@ export function TaskDetail() {
               </div>
 
               {/* Comments List */}
-              {comments && comments.length > 0 ? (
+              {commentsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
+                </div>
+              ) : comments && comments.length > 0 ? (
                 <div className="space-y-4 mt-6">
                   {comments.map((comment) => (
-                    <div key={comment.id} className="flex gap-3">
+                    <div key={comment.id} className="flex gap-3 group">
                       <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-medium text-sm">
                         {comment.author?.name?.[0] || '?'}
                       </div>
@@ -353,10 +414,66 @@ export function TaskDetail() {
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-gray-900">{comment.author?.name || 'Unknown'}</span>
                           <span className="text-sm text-gray-500">
-                            {format(new Date(comment.createdAt), 'MMM d, yyyy')}
+                            {format(new Date(comment.createdAt), 'MMM d, yyyy h:mm a')}
                           </span>
+                          {comment.editedAt && (
+                            <span className="text-xs text-gray-400">(edited)</span>
+                          )}
                         </div>
-                        <p className="text-gray-600 mt-1">{comment.content}</p>
+                        
+                        {editingCommentId === comment.id ? (
+                          <div className="mt-2 space-y-2">
+                            <textarea
+                              value={editCommentContent}
+                              onChange={(e) => setEditCommentContent(e.target.value)}
+                              rows={2}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none"
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => updateCommentMutation.mutate({ commentId: comment.id, content: editCommentContent })}
+                                disabled={!editCommentContent.trim() || updateCommentMutation.isPending}
+                                className="px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 disabled:opacity-50"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setEditingCommentId(null);
+                                  setEditCommentContent('');
+                                }}
+                                className="px-3 py-1 text-gray-600 text-sm hover:bg-gray-100 rounded"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <p className="text-gray-600 mt-1">{comment.content}</p>
+                            <div className="flex gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => {
+                                  setEditingCommentId(comment.id);
+                                  setEditCommentContent(comment.content);
+                                }}
+                                className="text-xs text-gray-500 hover:text-indigo-600"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm('Delete this comment?')) {
+                                    deleteCommentMutation.mutate(comment.id);
+                                  }
+                                }}
+                                className="text-xs text-gray-500 hover:text-red-600"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}

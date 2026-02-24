@@ -13,6 +13,7 @@ import { agentRoutes } from './routes/agents.js';
 import { userRoutes } from './routes/users.js';
 import { activityRoutes } from './routes/activities.js';
 import { authRoutes } from './routes/auth.js';
+import { commentRoutes } from './routes/comments.js';
 import { authenticate } from './lib/auth.js';
 
 const app = express();
@@ -47,6 +48,7 @@ app.use('/api/v1/tasks', authenticate, taskRoutes);
 app.use('/api/v1/agents', authenticate, agentRoutes);
 app.use('/api/v1/users', authenticate, userRoutes);
 app.use('/api/v1/activities', authenticate, activityRoutes);
+app.use('/api/v1/tasks/:taskId/comments', authenticate, commentRoutes);
 
 // Error handling
 app.use(errorHandler);

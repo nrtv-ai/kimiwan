@@ -18,6 +18,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  token: string | null;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
@@ -31,6 +32,7 @@ const USER_KEY = 'pm_cursor_user';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load user from localStorage on mount
@@ -43,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Set the auth header for API calls
       const tokens: AuthTokens = JSON.parse(storedTokens);
       api.defaults.headers.common['Authorization'] = `Bearer ${tokens.accessToken}`;
+      setToken(tokens.accessToken);
     }
     
     setIsLoading(false);
@@ -53,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
     api.defaults.headers.common['Authorization'] = `Bearer ${tokens.accessToken}`;
     setUser(userData);
+    setToken(tokens.accessToken);
   };
 
   const clearAuthData = () => {
@@ -60,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(TOKEN_KEY);
     delete api.defaults.headers.common['Authorization'];
     setUser(null);
+    setToken(null);
   };
 
   const login = async (email: string, password: string) => {
@@ -154,6 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isLoading,
         isAuthenticated: !!user,
+        token,
         login,
         register,
         logout,

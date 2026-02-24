@@ -10,7 +10,15 @@ interface TaskEvent {
   [key: string]: any;
 }
 
+interface CommentEvent {
+  id: string;
+  taskId: string;
+  projectId: string;
+  [key: string]: any;
+}
+
 type TaskEventHandler = (task: TaskEvent) => void;
+type CommentEventHandler = (comment: CommentEvent) => void;
 
 export function useSocket() {
   const socketRef = useRef<Socket | null>(null);
@@ -86,6 +94,37 @@ export function useSocket() {
     return () => {};
   }, []);
 
+  // Comment events
+  const onCommentCreated = useCallback((handler: CommentEventHandler) => {
+    if (socketRef.current) {
+      socketRef.current.on('comment:created', handler);
+      return () => {
+        socketRef.current?.off('comment:created', handler);
+      };
+    }
+    return () => {};
+  }, []);
+
+  const onCommentUpdated = useCallback((handler: CommentEventHandler) => {
+    if (socketRef.current) {
+      socketRef.current.on('comment:updated', handler);
+      return () => {
+        socketRef.current?.off('comment:updated', handler);
+      };
+    }
+    return () => {};
+  }, []);
+
+  const onCommentDeleted = useCallback((handler: CommentEventHandler) => {
+    if (socketRef.current) {
+      socketRef.current.on('comment:deleted', handler);
+      return () => {
+        socketRef.current?.off('comment:deleted', handler);
+      };
+    }
+    return () => {};
+  }, []);
+
   return {
     socket: socketRef.current,
     joinProject,
@@ -93,5 +132,8 @@ export function useSocket() {
     onTaskCreated,
     onTaskUpdated,
     onTaskDeleted,
+    onCommentCreated,
+    onCommentUpdated,
+    onCommentDeleted,
   };
 }

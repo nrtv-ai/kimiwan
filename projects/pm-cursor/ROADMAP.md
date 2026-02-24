@@ -71,12 +71,12 @@
 #### Real-time Features
 - [x] WebSocket event broadcasting
 - [x] Live task updates
-- [ ] Activity feed real-time updates
+- [x] Activity feed real-time updates
 - [ ] Notification system
 
 #### Task Enhancements
 - [x] Task detail page
-- [ ] Task comments
+- [x] Task comments (CRUD + real-time)
 - [ ] Task attachments
 - [ ] Subtasks / task hierarchy
 - [ ] Task dependencies
