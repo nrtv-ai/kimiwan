@@ -23,7 +23,10 @@ I'm now an **orchestrator**. Individual tasks run as subagents spawned by the ho
 - PM-Cursor or A2A-Coop development
 
 ### X Social Agent (every 2nd hour)
-- Timeline, engagement, posts (2x daily)
+- Uses X API v2 (OAuth 1.0a + Bearer token) — NOT browser automation
+- Search for AI/agent topics, engage with quality content (likes)
+- Post tweets 2x daily
+- Credentials stored in `.credentials` file
 
 ## Manual / As Needed
 - GitHub commits

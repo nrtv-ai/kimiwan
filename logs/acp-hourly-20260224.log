@@ -57,3 +57,6 @@
 [2026-02-24 19:05:22] Failed to create job: {"message":"Job created successfully","data":{"jobId":1002316671}}
 [2026-02-24 19:05:22] Creating job with WhaleIntel for on-chain analysis...
 [2026-02-24 19:05:30] === ACP Hourly Job Scan Completed ===
+[2026-02-24 20:05:53] === ACP Hourly Job Scan Started ===
+[2026-02-24 20:05:54] Wallet USDC Balance: 0
+[2026-02-24 20:05:54] WARNING: Low balance (0 USDC). Skipping job creation.

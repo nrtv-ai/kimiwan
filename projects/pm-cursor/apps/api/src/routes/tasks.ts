@@ -3,8 +3,18 @@ import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { db, tasks, NewTask } from '../db/index.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { io } from '../index.js';
 
 const router = Router();
+
+// Helper to broadcast task events to project subscribers
+const broadcastTaskEvent = (event: string, task: any) => {
+  if (task.projectId) {
+    io.to(`project:${task.projectId}`).emit(`task:${event}`, task);
+  }
+  // Also broadcast to global tasks channel
+  io.emit(`task:${event}`, task);
+};
 
 const createTaskSchema = z.object({
   projectId: z.string().uuid(),
@@ -93,6 +103,9 @@ router.post('/', async (req, res, next) => {
     const result = await db.insert(tasks).values(newTask).returning();
     const task = result[0];
     
+    // Broadcast task creation event
+    broadcastTaskEvent('created', task);
+    
     res.status(201).json({ data: task });
   } catch (error) {
     next(error);
@@ -121,6 +134,9 @@ router.patch('/:id', async (req, res, next) => {
       throw new AppError(404, 'Task not found', 'NOT_FOUND');
     }
     
+    // Broadcast task update event
+    broadcastTaskEvent('updated', task);
+    
     res.json({ data: task });
   } catch (error) {
     next(error);
@@ -130,6 +146,11 @@ router.patch('/:id', async (req, res, next) => {
 // DELETE /api/v1/tasks/:id
 router.delete('/:id', async (req, res, next) => {
   try {
+    // Get task before deletion to broadcast event
+    const taskToDelete = await db.query.tasks.findFirst({
+      where: (tasks, { eq }) => eq(tasks.id, req.params.id),
+    });
+    
     const [task] = await db
       .delete(tasks)
       .where(eq(tasks.id, req.params.id))
@@ -138,6 +159,9 @@ router.delete('/:id', async (req, res, next) => {
     if (!task) {
       throw new AppError(404, 'Task not found', 'NOT_FOUND');
     }
+    
+    // Broadcast task deletion event
+    broadcastTaskEvent('deleted', { ...task, id: req.params.id });
     
     res.status(204).send();
   } catch (error) {

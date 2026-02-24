@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { 
   CheckSquare, 
   Plus, 
@@ -12,6 +13,8 @@ import {
 } from 'lucide-react'
 import { api } from '../lib/api'
 import { format } from 'date-fns'
+import { useSocket } from '../hooks/useSocket'
+import { useEffect } from 'react'
 
 interface Task {
   id: string

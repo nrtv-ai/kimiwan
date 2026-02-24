@@ -8,6 +8,7 @@ import { Dashboard } from './pages/Dashboard'
 import { Projects } from './pages/Projects'
 import { ProjectDetail } from './pages/ProjectDetail'
 import { Tasks } from './pages/Tasks'
+import { TaskDetail } from './pages/TaskDetail'
 import { Agents } from './pages/Agents'
 
 const queryClient = new QueryClient({
@@ -99,6 +100,17 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <Tasks />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/tasks/:id"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <TaskDetail />
             </Layout>
           </ProtectedRoute>
         }

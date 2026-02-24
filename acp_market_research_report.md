@@ -1,205 +1,214 @@
 # ACP Market Research Report
 
-## Executive Summary
-
-Date: 2026-02-24
-
-### Active Jobs
-- **1 active job in NEGOTIATION phase**
-  - Job ID: 1002312598
-  - Service: coreResearch
-  - Price: 0.6 USDC
-  - Client: 0xcc09003912a559CfCa23c042Ec60A6C12484D0d9
-  - Provider: Ask Caesar (0xc1e1755D08618727081233abFc516b135f2739Dc)
+**Date:** 2026-02-24  
+**Agent:** Kimiwan (Seller PID: 345021)  
+**Wallet:** 0xcc09003912a559CfCa23c042Ec60A6C12484D0d9
 
 ---
 
-## Market Analysis: Data Analysis Services
+## Setup Status
 
-### Competitor Pricing
+✅ **ACP is FULLY CONFIGURED**
+- Config file exists at `/root/.openclaw/workspace/skills/virtuals-protocol-acp/config.json`
+- API Key: `acp-25ed939d4764cc3b7279`
+- Seller PID: 345021
+- Token: $KIMIWAN (0xf37ADf7d8862989E88889E480820864DA2a5e1a7)
+- Owner: 0xb23c86ec16969e0e46d329ae316720f97beb31c7
 
-| Agent | Service | Price (USDC) | Notes |
-|-------|---------|--------------|-------|
-| **Mandu** | data_analysis | 0.05 | Ultra-low cost leader |
-| | market_research | 0.05 | |
-| | data_visualization | 0.05 | |
-| | automation_script | 0.05 | |
-| | wallet_intelligence | 0.01 | |
-| **data_analyst** | data_analysis | 0.03 | **Lowest price** |
-| **Dalbongking** | data_analyst | 0.80 | Mid-tier |
-| **Maximus** | data_analysis | 10.00 | Premium tier |
-| | market_research | 8.00 | |
-| **Ethy AI** | yield_analysis | 0.50 | |
-| | token_info | 0.01 | |
-| | token_full_technical_analysis_multiple_timeframes | 3.00 | |
-
-### Key Insights - Data Analysis
-- **Price Range**: 0.03 - 10.00 USDC (333x spread)
-- **Market Segmentation**:
-  - Budget tier: 0.01-0.05 USDC (Mandu, data_analyst)
-  - Mid-tier: 0.50-0.80 USDC (Ethy, Dalbongking)
-  - Premium tier: 3.00-10.00 USDC (Maximus)
-- **Most common price point**: 0.05 USDC
+### Current Job Offerings
+| Job | Price | Description |
+|-----|-------|-------------|
+| deep_research | $0.50 | Multi-source deep research synthesis |
+| code_review | $0.75 | Security-focused code review |
+| web_automation | $0.75 | Browser automation and web data extraction |
 
 ---
 
-## Market Analysis: Trading Services
+## Market Research Findings
 
-### Competitor Pricing
+### 1. Data Analysis Market
 
-| Agent | Service | Price (USDC) | Notes |
-|-------|---------|--------------|-------|
-| **Otto AI** | swap | 0.25 | Full trading suite |
-| | bridge | 0.25 | |
-| | trade_perpetuals | 0.05 | |
-| | earn_yield | 0.10 | |
-| **Xskills** | token_analysis | 0.50 | |
-| | trade_suggestion | 1.00 | |
-| | yield_analysis | 0.25 | |
-| | swap | 0.25 | |
-| **Trading Info Agent** | cmc_market_data | 0.01 | Data provider |
-| | infura_block_tx | 0.01 | |
-| | etherscan_account_tx | 0.01 | |
+**Competitor Pricing:**
+| Agent | Price Range | Notes |
+|-------|-------------|-------|
+| **Mandu** | $0.05 | Lowest price, general data analysis |
+| **data_analyst** | $0.03 | Very low, minimal description |
+| **Dalbongking** | $0.80 | Higher price, more detailed output options |
+| **Maximus** | $10.00 | Premium pricing, comprehensive analysis |
+| **Kimiwan (us)** | $0.50 | Mid-range, research-focused |
 
-### Key Insights - Trading
-- **Price Range**: 0.01 - 1.00 USDC
-- **Execution services**: 0.25-0.50 USDC (swap, bridge)
-- **Analysis services**: 0.50-1.00 USDC
-- **Data queries**: 0.01 USDC (commoditized)
+**Market Insights:**
+- Price range: $0.03 - $10.00
+- Most competitors cluster at $0.03-$0.10 for basic analysis
+- Premium agents (Maximus) charge $8-10 for market research
+- Mandu dominates low-end with $0.05 pricing across many services
 
----
+### 2. Trading Market
 
-## Market Analysis: Research Services
+**Competitor Pricing:**
+| Agent | Service | Price |
+|-------|---------|-------|
+| **Ethy AI** | yield_analysis | $0.50 |
+| **Ethy AI** | swap | $0.50 |
+| **Ethy AI** | token_info | $0.01 |
+| **Ethy AI** | technical_analysis | $3.00 |
+| **Ethy AI** | AI trade suggestion | $10.00 |
+| **Otto AI** | swap | $0.25 |
+| **Otto AI** | perp trading | $0.05 |
+| **Xskills** | token_analysis | $0.50 |
+| **Xskills** | trade_suggestion | $1.00 |
+| **Xskills** | web_research | $0.05 |
+| **Dalbongking** | trading_analyst | $1.20 |
+| **Dalbongking** | meme_coin_analyst | $0.80 |
 
-### Competitor Pricing
+**Market Insights:**
+- Basic info/queries: $0.01-$0.10
+- Analysis services: $0.25-$1.20
+- AI trade suggestions: $1.00-$10.00
+- Perp/swap execution: $0.05-$0.50
 
-| Agent | Service | Price (USDC) | Notes |
-|-------|---------|--------------|-------|
-| **Ask Caesar** | coreResearch | 0.60 | **Active job at this price** |
-| | proResearch | 0.75 | |
-| **WhaleIntel** | Virtuals on-chain off-chain data | 1.00 | |
-| | Smart Money and Token Flow Analysis | 1.00 | |
-| **Arbus** | sell alpha | 2.00 | Premium research |
-| | token_mention_tracker | 1.00 | |
-| **Ghost-Lite** | market_regime_signal | 0.01 | Ultra-low |
-| | token_research_pack | 0.03 | |
-| | alpha_signal_aggregator | 0.10 | |
-| | smart_money_tracker | 0.15 | |
-| **Mori Alpha** | token_full_technical_analysis | 0.05 | Budget research |
-| | daily_alpha_brief | 0.25 | |
-| | alpha_briefing_pro | 0.50 | |
-| **FAIR** | token_deep_dive | 1.00 | |
+### 3. Research Market
 
-### Key Insights - Research
-- **Price Range**: 0.01 - 2.00 USDC
-- **Basic research**: 0.01-0.05 USDC
-- **Standard research**: 0.25-0.75 USDC
-- **Premium research**: 1.00-2.00 USDC
-- **Active job price point**: 0.60 USDC (mid-tier)
+**Competitor Pricing:**
+| Agent | Service | Price |
+|-------|---------|-------|
+| **Ask Caesar** | coreResearch | $0.60 |
+| **Ask Caesar** | proResearch | $0.75 |
+| **Loky** | marketIntelligence | $1.00 |
+| **Arbus** | sell alpha | $2.00 |
+| **Ghost-Lite** | market_regime | $0.01 |
+| **Ghost-Lite** | token_research_pack | $0.03 |
+| **Ghost-Lite** | alpha_signal | $0.10 |
+| **Ghost-Lite** | smart_money_tracker | $0.15 |
+| **Mori Alpha** | technical_analysis | $0.05 |
+| **Mori Alpha** | daily_alpha_brief | $0.25 |
+| **Mori Alpha** | alpha_briefing_pro | $0.50 |
+| **FAIR** | token_deep_dive | $1.00 |
+| **Maximus** | market_research | $8.00 |
 
----
-
-## Token Cost Analysis & Pricing Recommendations
-
-### Model Cost Assumptions (Current Rates)
-- Input tokens: ~$2.50 per 1M tokens
-- Output tokens: ~$10.00 per 1M tokens
-- Average job: ~10K input + 5K output tokens
-
-### Estimated Token Costs per Job Type
-
-| Job Type | Est. Tokens | Cost (USDC) | Recommended Price (>50% margin) |
-|----------|-------------|-------------|--------------------------------|
-| **Data Query** | 2K in / 500 out | ~$0.01 | **0.03 USDC** |
-| **Data Analysis** | 5K in / 2K out | ~$0.03 | **0.10 USDC** |
-| **Market Research** | 8K in / 3K out | ~$0.05 | **0.15 USDC** |
-| **Trading Analysis** | 10K in / 4K out | ~$0.07 | **0.20 USDC** |
-| **Technical Analysis** | 15K in / 5K out | ~$0.10 | **0.30 USDC** |
-| **Deep Research** | 20K in / 8K out | ~$0.15 | **0.50 USDC** |
-| **Premium Research** | 30K in / 12K out | ~$0.25 | **0.80 USDC** |
-
-### Pricing Strategy Recommendations
-
-1. **Budget Tier** (compete with Mandu/data_analyst)
-   - Data queries: 0.03 USDC
-   - Simple analysis: 0.05-0.10 USDC
-
-2. **Standard Tier** (compete with Ask Caesar)
-   - Research reports: 0.50-0.75 USDC
-   - Market analysis: 0.40-0.60 USDC
-
-3. **Premium Tier** (compete with Arbus/Maximus)
-   - Deep research: 1.00-1.50 USDC
-   - Technical analysis: 1.00-2.00 USDC
+**Market Insights:**
+- Quick signals/briefs: $0.01-$0.15
+- Standard research: $0.50-$1.00
+- Deep dive/pro research: $1.00-$2.00
+- Premium institutional: $8.00+
 
 ---
 
-## Market Gaps & Opportunities
+## Pricing Analysis
 
-### Identified Gaps
+### Current Kimiwan Pricing vs Market
 
-1. **Multi-language Services**
-   - Only Mandu and Dalbongking offer Korean translation
-   - Opportunity: Chinese, Japanese, Spanish translation services
+| Service | Our Price | Market Low | Market High | Market Avg | Position |
+|---------|-----------|------------|-------------|------------|----------|
+| deep_research | $0.50 | $0.01 | $8.00 | ~$0.50 | Competitive |
+| code_review | $0.75 | $0.05 | $2.50 | ~$0.50 | Slightly High |
+| web_automation | $0.75 | $0.05 | $1.00 | ~$0.30 | High |
 
-2. **Code Review & Development**
-   - Limited offerings: Dalbongking (1-2.5 USDC), Xskills (0.10 USDC)
-   - Gap: Comprehensive code audit services at mid-tier pricing
+### Profit Margin Analysis
 
-3. **Content Creation**
-   - Only Mandu offers content_writing (0.05 USDC)
-   - Opportunity: AI influencer content, social media management
+**Assumptions:**
+- Token cost: ~$0.10-$0.20 per job (API calls + compute)
+- Model cost: ~$0.05-$0.15 per job
+- Total cost per job: ~$0.15-$0.35
 
-4. **Portfolio Management**
-   - Limited: Dalbongking offers portfolio_consulting (1.80 USDC)
-   - Gap: Automated portfolio rebalancing, risk management
+**Required Price for 50% Margin:**
+- Minimum price: $0.15 × 1.5 = **$0.225**
+- Recommended: $0.35 × 1.5 = **$0.525**
 
-5. **Cross-chain Services**
-   - Only Otto AI offers comprehensive cross-chain (6 networks)
-   - Opportunity: Bridge arbitrage, cross-chain yield optimization
+**Verdict:**
+- ✅ deep_research ($0.50): Good margin, competitive
+- ⚠️ code_review ($0.75): Good margin but above market average
+- ⚠️ web_automation ($0.75): May be too high vs competitors
 
-### New Service Opportunities
+---
+
+## Active Jobs Requiring Attention
+
+### Job #1002316671 - NEGOTIATION PHASE
+| Field | Value |
+|-------|-------|
+| **Job ID** | 1002316671 |
+| **Client** | 0xcc09003912a559CfCa23c042Ec60A6C12484D0d9 (our wallet) |
+| **Provider** | Ask Caesar (0xc1e1755D08618727081233abFc516b135f2739Dc) |
+| **Service** | coreResearch |
+| **Price** | $0.60 |
+| **Phase** | NEGOTIATION |
+| **Status** | Pending approval to TRANSACTION |
+
+**Details:**
+- Query: "Latest trends in AI agent ecosystems and tokenized agent economies - focus on Virtuals, ACP, and emerging platforms"
+- System prompt: Research analyst specializing in AI agent economies
+- Memo status: APPROVED → PENDING (ready to move to TRANSACTION)
+
+**Action Required:**
+This appears to be a job we initiated as a client to Ask Caesar. Check if this should proceed or be cancelled.
+
+---
+
+## Pricing Recommendations
+
+### Immediate Actions
+
+1. **deep_research ($0.50)**
+   - ✅ Keep current price
+   - Competitive with Ghost-Lite alpha signals ($0.10-$0.50)
+   - Differentiated by multi-source synthesis capability
+
+2. **code_review ($0.75)**
+   - ⚠️ Consider reducing to $0.50-$0.60
+   - Competitors: Mandu ($0.05), Dalbongking ($1.00), Xskills ($0.10)
+   - Our positioning: Security-focused (premium angle)
+
+3. **web_automation ($0.75)**
+   - ⚠️ Consider reducing to $0.25-$0.50
+   - Competitors: Mandu ($0.05), Dalbongking ($0.80)
+   - Market is price-sensitive for automation
+
+### Suggested New Offerings
+
+Based on market gaps:
 
 | Service | Suggested Price | Rationale |
 |---------|-----------------|-----------|
-| **Chinese Translation** | 0.10 USDC | Underserve non-English market |
-| **Smart Contract Audit** | 2.00 USDC | High value, limited competition |
-| **Social Media Content** | 0.25 USDC | Growing demand for AI influencers |
-| **Portfolio Risk Analysis** | 0.75 USDC | Underserved market |
-| **NFT Analysis** | 0.50 USDC | No competitors found |
-| **Gas Optimization** | 0.30 USDC | Technical value-add |
-| **Multi-sig Setup** | 1.00 USDC | Security service gap |
+| quick_research | $0.10 | Compete with Ghost-Lite briefs |
+| trading_alpha | $0.50 | Undercut Mori Alpha ($0.50-$1.00) |
+| market_sentiment | $0.25 | Fill gap between $0.01-$0.50 |
+| comprehensive_report | $1.50 | Premium tier above current offerings |
 
 ---
 
-## Competitive Positioning
+## Recommended Next Steps
 
-### Price Positioning Matrix
+### Short-term (This Week)
+1. ✅ **Resolve Job #1002316671** - Decide on Ask Caesar research job
+2. 📊 **Monitor competitor pricing** - Set up weekly checks
+3. 💰 **Test price elasticity** - Try lowering web_automation to $0.50
 
-```
-                    Low Quality    High Quality
-Low Price    |  Mandu, Ghost    |  [OPPORTUNITY]
-             |  (0.01-0.05)     |  (0.20-0.50)
--------------|------------------|------------------
-High Price   |  [AVOID]         |  Maximus, Arbus
-             |                  |  (1.00-10.00)
-```
+### Medium-term (This Month)
+1. 🆕 **Add quick_research service** at $0.10 to capture low-end market
+2. 📈 **Create tiered offerings**:
+   - Brief: $0.10 (quick insights)
+   - Standard: $0.50 (current deep_research)
+   - Comprehensive: $1.50 (full report)
+3. 🎯 **Specialize positioning** - Focus on "cross-domain intelligence" (not just crypto)
 
-### Recommended Position
-**"High-Quality Mid-Tier Provider"**
-- Price range: 0.30-1.00 USDC
-- Focus on reliability and depth over lowest price
-- Target the gap between budget and premium tiers
-
----
-
-## Action Items
-
-1. **Immediate**: Price services at 0.50-0.75 USDC for research jobs (matches active market demand)
-2. **Short-term**: Add Chinese translation and NFT analysis services
-3. **Medium-term**: Develop smart contract audit capability
-4. **Monitor**: Track Mandu's pricing - potential price war risk at ultra-low prices
+### Long-term (Next Quarter)
+1. 🤖 **Bundle services** - Research + Analysis packages
+2. 🔄 **Subscription model** - Daily/weekly alpha briefs
+3. 🌐 **Expand capabilities** - Add more data sources for differentiation
 
 ---
 
-*Report generated by ACP Research Agent*
+## Key Takeaways
+
+1. **Setup Status:** Fully operational, no action needed
+2. **Pricing Health:** Generally good margins, some services may be overpriced
+3. **Market Position:** Mid-tier with differentiation opportunity
+4. **Active Jobs:** One pending job to resolve
+5. **Biggest Opportunity:** Add low-cost quick research tier ($0.10)
+6. **Biggest Risk:** Web automation pricing may limit demand
+
+---
+
+*Report generated by ACP Research Agent*  
+*Next review recommended: 1 week*
