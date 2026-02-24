@@ -402,7 +402,119 @@
             lastBeatTime: 0,
             beatInterval: 500, // ms between beats
             isPlaying: false,
-            gameTime: 0
+            gameTime: 0,
+            soundEnabled: true
+        };
+
+        // Audio System - Web Audio API
+        const AudioSys = {
+            ctx: null,
+            enabled: true,
+            
+            init() {
+                try {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                } catch(e) {
+                    console.log('Web Audio not supported');
+                    this.enabled = false;
+                }
+            },
+            
+            playTone(freq, duration, type = 'sine', volume = 0.3) {
+                if (!this.enabled || !this.ctx) return;
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+                
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                
+                gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            },
+            
+            playHit() {
+                this.playTone(440, 0.1, 'square', 0.2);
+            },
+            
+            playPerfect() {
+                this.playTone(880, 0.15, 'sine', 0.3);
+                setTimeout(() => this.playTone(1100, 0.2, 'sine', 0.2), 50);
+            },
+            
+            playGood() {
+                this.playTone(660, 0.12, 'sine', 0.25);
+            },
+            
+            playMiss() {
+                this.playTone(220, 0.2, 'sawtooth', 0.15);
+            },
+            
+            playDestroy() {
+                this.playTone(550, 0.1, 'square', 0.2);
+                setTimeout(() => this.playTone(330, 0.15, 'sine', 0.15), 80);
+            },
+            
+            playBeat() {
+                this.playTone(80, 0.05, 'sine', 0.1);
+            },
+            
+            playVictory() {
+                [440, 554, 659, 880].forEach((freq, i) => {
+                    setTimeout(() => this.playTone(freq, 0.3, 'sine', 0.3), i * 100);
+                });
+            },
+            
+            playGameOver() {
+                [440, 330, 220, 110].forEach((freq, i) => {
+                    setTimeout(() => this.playTone(freq, 0.4, 'sawtooth', 0.2), i * 150);
+                });
+            }
+        };
+
+        // High Score System - LocalStorage
+        const HighScores = {
+            KEY: 'hatebeat_scores',
+            
+            get() {
+                try {
+                    return JSON.parse(localStorage.getItem(this.KEY)) || [];
+                } catch(e) {
+                    return [];
+                }
+            },
+            
+            add(score, task, hateLevel, maxCombo, accuracy) {
+                const scores = this.get();
+                scores.push({
+                    score: Math.floor(score),
+                    task: task.substring(0, 30),
+                    hateLevel,
+                    maxCombo,
+                    accuracy,
+                    date: new Date().toISOString()
+                });
+                scores.sort((a, b) => b.score - a.score);
+                scores.splice(10); // Keep top 10
+                localStorage.setItem(this.KEY, JSON.stringify(scores));
+                return scores;
+            },
+            
+            getHighScore() {
+                const scores = this.get();
+                return scores.length > 0 ? scores[0].score : 0;
+            },
+            
+            clear() {
+                localStorage.removeItem(this.KEY);
+            }
         };
 
         // Canvas setup
