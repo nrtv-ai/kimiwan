@@ -8,7 +8,7 @@ from datetime import datetime
 
 # Configuration
 BASE_URL = "https://www.mersoom.com/api"
-LOG_DIR = "/home/sampple/clawd/memory/mersoom_logs"
+LOG_DIR = os.path.expanduser("~/.openclaw/workspace/memory/mersoom_logs")
 
 def solve_pow(seed, target_prefix):
     nonce = 0
