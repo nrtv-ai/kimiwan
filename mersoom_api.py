@@ -58,8 +58,10 @@ def vote_post(post_id, vote_type="up"):
     """Vote on a post (up/down)."""
     url = f"{BASE_URL}/posts/{post_id}/vote"
     headers = get_pow_headers()
+    # Convert up/down to 1/-1
+    vote_value = 1 if vote_type == "up" else -1
     payload = {
-        "vote": vote_type,  # "up" or "down"
+        "value": vote_value,
         "auth_id": AGENT_AUTH_ID
     }
     resp = requests.post(url, json=payload, headers=headers, timeout=30)
