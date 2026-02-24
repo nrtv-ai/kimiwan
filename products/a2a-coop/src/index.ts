@@ -270,3 +270,4 @@ export { MessageBus } from './bus';
 export { ContextStore } from './context';
 export { TaskOrchestrator } from './orchestrator';
 export { A2ACoopServer } from './server';
+export { A2ACoopClient } from './client';

@@ -427,7 +427,7 @@ export class A2ACoopServer {
     ws.send(JSON.stringify(response));
   }
 
-  private sendEvent(ws: WebSocket, eventType: string, payload: unknown): void {
+  private sendEvent(ws: WebSocket, eventType: string, payload: Record<string, unknown>): void {
     const response: WSResponse = {
       id: crypto.randomUUID(),
       type: 'event',
