@@ -55,7 +55,7 @@ describe('A2ACoopServer', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.body.status).toBe('healthy');
-      expect(response.body.version).toBe('0.1.0');
+      expect(response.body.version).toBe('0.2.0');
       expect(response.body.components).toBeDefined();
       expect(response.body.metrics).toBeDefined();
     });

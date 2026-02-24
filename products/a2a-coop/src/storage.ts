@@ -196,7 +196,14 @@ export class RedisStorage implements Storage {
   async connect(): Promise<void> {
     try {
       // Dynamic import to avoid requiring redis as a hard dependency
-      const { createClient } = await import('redis');
+      let createClient: any;
+      try {
+        // @ts-ignore - Redis is an optional dependency
+        const redis = await import('redis');
+        createClient = redis.createClient;
+      } catch {
+        throw new Error('Redis module not installed. Run: npm install redis');
+      }
       
       if (this.config.url) {
         this.client = createClient({ url: this.config.url });

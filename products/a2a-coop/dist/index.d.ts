@@ -146,6 +146,8 @@ export { AgentRegistry } from './registry';
 export { MessageBus } from './bus';
 export { ContextStore } from './context';
 export { TaskOrchestrator } from './orchestrator';
-export { A2ACoopServer } from './server';
+export { A2ACoopServer, ServerOptions, HealthStatus } from './server';
 export { A2ACoopClient } from './client';
+export { RateLimiter, WebSocketRateLimiter, RateLimiterConfig } from './rateLimiter';
+export { A2ACoopRestApi } from './restApi';
 //# sourceMappingURL=index.d.ts.map

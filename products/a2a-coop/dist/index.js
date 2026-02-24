@@ -14,7 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.A2ACoopClient = exports.A2ACoopServer = exports.TaskOrchestrator = exports.ContextStore = exports.MessageBus = exports.AgentRegistry = exports.A2ACoop = void 0;
+exports.A2ACoopRestApi = exports.WebSocketRateLimiter = exports.RateLimiter = exports.A2ACoopClient = exports.A2ACoopServer = exports.TaskOrchestrator = exports.ContextStore = exports.MessageBus = exports.AgentRegistry = exports.A2ACoop = void 0;
 const registry_1 = require("./registry");
 const bus_1 = require("./bus");
 const context_1 = require("./context");
@@ -225,4 +225,9 @@ var server_1 = require("./server");
 Object.defineProperty(exports, "A2ACoopServer", { enumerable: true, get: function () { return server_1.A2ACoopServer; } });
 var client_1 = require("./client");
 Object.defineProperty(exports, "A2ACoopClient", { enumerable: true, get: function () { return client_1.A2ACoopClient; } });
+var rateLimiter_1 = require("./rateLimiter");
+Object.defineProperty(exports, "RateLimiter", { enumerable: true, get: function () { return rateLimiter_1.RateLimiter; } });
+Object.defineProperty(exports, "WebSocketRateLimiter", { enumerable: true, get: function () { return rateLimiter_1.WebSocketRateLimiter; } });
+var restApi_1 = require("./restApi");
+Object.defineProperty(exports, "A2ACoopRestApi", { enumerable: true, get: function () { return restApi_1.A2ACoopRestApi; } });
 //# sourceMappingURL=index.js.map
