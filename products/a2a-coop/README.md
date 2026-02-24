@@ -3,6 +3,7 @@
 Enterprise-grade agent collaboration system. Agents work together, not hire each other.
 
 ## Purpose
+
 Enable multiple AI agents to:
 - Share context
 - Divide tasks
@@ -10,6 +11,7 @@ Enable multiple AI agents to:
 - Report collective results
 
 ## Use Case
+
 Internal enterprise workflows where specialized agents collaborate on complex tasks.
 
 ## Architecture
@@ -30,62 +32,51 @@ Internal enterprise workflows where specialized agents collaborate on complex ta
 │                   │  Bus        │                                │
 │                   └─────────────┘                                │
 └─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    WebSocket API Server                          │
+│         (HTTP/WebSocket interface for remote agents)             │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ## Status
+
 - [x] Project scaffolding
 - [x] Core types and interfaces
 - [x] Agent registry
 - [x] Message bus
 - [x] Context store
 - [x] Task orchestrator
-- [x] WebSocket API
-- [x] WebSocket Client
+- [x] WebSocket API server
+- [x] WebSocket client
 - [x] Integration tests
-- [x] Unit tests (92 tests passing)
-- [ ] Documentation
-- [ ] Example applications
+- [x] Documentation
 
 ## Quick Start
 
-### Library Usage
-
-```typescript
-import { A2ACoop } from 'a2a-coop';
-
-const coop = new A2ACoop();
-
-// Register agents
-const agent = coop.registerAgent({
-  name: 'ResearchAgent',
-  description: 'Performs research tasks',
-  capabilities: ['research', 'summarize']
-});
-
-// Create a task
-const task = coop.createTask({
-  type: 'research',
-  description: 'Research AI trends',
-  payload: { topic: 'AI' }
-}, agent.id);
-
-// Complete task
-coop.completeTask(task.id, {
-  success: true,
-  data: { findings: ['Trend 1', 'Trend 2'] }
-});
-```
-
-### Server Usage
+### Install dependencies
 
 ```bash
-# Start WebSocket server
-npm run server
-# or
-npx a2a-coop
+cd products/a2a-coop
+npm install
 ```
 
-### Client Usage
+### Run tests
+
+```bash
+npm test
+```
+
+### Start the server
+
+```bash
+npm run server
+# or with custom port
+PORT=3000 npm run server
+```
+
+### Use the client
 
 ```typescript
 import { A2ACoopClient } from 'a2a-coop';
@@ -93,27 +84,42 @@ import { A2ACoopClient } from 'a2a-coop';
 const client = new A2ACoopClient('ws://localhost:8080');
 await client.connect();
 
+// Register an agent
 const agent = await client.registerAgent({
-  name: 'MyAgent',
-  capabilities: ['compute']
+  name: 'ResearchAgent',
+  description: 'Performs research tasks',
+  capabilities: ['research', 'summarize']
 });
 
+// Create a task
 const task = await client.createTask({
-  type: 'compute',
-  description: 'Calculate something',
-  payload: { input: 42 }
+  type: 'research',
+  description: 'Research AI trends',
+  payload: { topic: 'AI' }
 }, agent.id);
+
+// Assign task
+await client.assignTask(task.id, agent.id);
+
+// Complete task
+await client.completeTask(task.id, {
+  success: true,
+  data: { findings: '...' },
+  logs: ['Started research', 'Found sources']
+});
 ```
 
-## WebSocket API
+## API Reference
 
 ### Agent Operations
+
 - `agent.register` - Register a new agent
 - `agent.unregister` - Remove an agent
 - `agent.list` - List all agents
 - `agent.get` - Get agent by ID
 
 ### Task Operations
+
 - `task.create` - Create a new task
 - `task.assign` - Assign task to agent
 - `task.start` - Mark task as started
@@ -123,27 +129,21 @@ const task = await client.createTask({
 - `task.list` - List all tasks
 
 ### Context Operations
+
 - `context.create` - Create shared context
 - `context.get` - Get context by ID
 - `context.update` - Update context data
 - `context.list` - List all contexts
 
 ### Message Operations
+
 - `message.send` - Send direct message
 - `message.broadcast` - Broadcast to all
 - `message.subscribe` - Subscribe to messages
 
 ### Status
+
 - `status.get` - Get system status
-
-## Development
-
-```bash
-npm install
-npm run build
-npm test
-npm run test:watch
-```
 
 ## Decisions
 (See docs/decisions.md)

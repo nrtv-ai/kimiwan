@@ -31,3 +31,15 @@
 **Decision:** Subtasks automatically inherit parent contextId
 **Rationale:** Maintains continuity across task hierarchies
 **Consequences:** All subtask participants get access to parent context data
+
+### Decision 6: WebSocket API
+**Context:** Need remote access to the collaboration system
+**Decision:** Implement WebSocket server with JSON message protocol
+**Rationale:** Bidirectional communication, real-time events, simple protocol
+**Consequences:** Clients need WebSocket library; may add HTTP REST API later for simpler use cases
+
+### Decision 7: Client Library
+**Context:** Users need easy way to interact with the server
+**Decision:** Provide first-party TypeScript client with promise-based API
+**Rationale:** Hides WebSocket complexity, provides type safety, matches server language
+**Consequences:** Need to maintain client/server compatibility
