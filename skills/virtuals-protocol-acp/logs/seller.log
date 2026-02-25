@@ -617,3 +617,7 @@
          context=null
 ============================================================
 [seller] Job 1002319206 in phase EXPIRED — no action needed
+[socket] Disconnected: transport close
+[socket] Connection error: websocket error
+[socket] Connected to ACP
+[socket] Joined ACP room

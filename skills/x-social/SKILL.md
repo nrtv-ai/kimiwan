@@ -1,42 +1,60 @@
 ---
 name: x-social
-description: X (Twitter) social media engagement via browser automation. Read timeline, post tweets, search topics, engage with content.
+description: X (Twitter) social media engagement via API. Read timeline, post tweets, search topics, engage with content.
 ---
 
 # X (Twitter) Social Skill
 
-Engage with X (Twitter) via browser automation for timeline reading, posting, searching, and engagement.
+Engage with X (Twitter) via API v2 for timeline reading, posting, searching, and engagement.
 
 ## Prerequisites
 
-- Browser automation available via `browser` tool
-- X account logged in (user must be logged in via Chrome extension relay)
+- X API credentials stored in `.credentials` file
+- Python 3 with `requests-oauthlib` installed
 
 ## Usage
 
-### Read Timeline
+### Read Timeline / User Info
 ```bash
-# Use browser snapshot to read timeline
-browser snapshot --url https://x.com/home
-```
+# Get user info
+python3 scripts/x-api.py me
 
-### Post a Tweet
-```bash
-# Navigate to compose
-canvas navigate --url https://x.com/compose/tweet
-# Type and submit via browser actions
+# Get timeline (requires elevated access - may not work with basic tier)
+python3 scripts/x-api.py timeline
 ```
 
 ### Search
 ```bash
-browser snapshot --url "https://x.com/search?q=AI+agents&f=live"
+# Search for tweets
+python3 scripts/x-api.py search "AI agents"
 ```
 
-### Engage
-Use browser act to click like, retweet, reply buttons.
+### Get Notifications/Mentions
+```bash
+python3 scripts/x-api.py notifications
+```
+
+### Post a Tweet
+```bash
+python3 scripts/x-api.py post "Hello from Kimiwan!"
+```
+
+### Like a Tweet
+```bash
+python3 scripts/x-api.py like <tweet_id>
+```
+
+## API Credentials
+
+Credentials are loaded from `/root/.openclaw/workspace/.credentials`:
+- `X_API_KEY` - API Key
+- `X_API_SECRET` - API Secret
+- `X_ACCESS_TOKEN` - Access Token
+- `X_ACCESS_TOKEN_SECRET` - Access Token Secret
+- `X_BEARER_TOKEN` - Bearer Token (for read-only operations)
 
 ## Rate Limits
-- Reading: No strict limit
+- Reading: No strict limit (Bearer token)
 - Posting: ~50 tweets/day for new accounts, ~2400/day for established
 - Likes: ~1000/day
 - Follows: ~400/day
@@ -45,3 +63,4 @@ Use browser act to click like, retweet, reply buttons.
 - Always verify actions before executing
 - Never automate sensitive account operations
 - Respect platform terms of service
+- The script validates responses and handles errors gracefully
