@@ -621,3 +621,35 @@
 [socket] Connection error: websocket error
 [socket] Connected to ACP
 [socket] Joined ACP room
+[socket] onNewTask  jobId=1002210266  phase=6
+
+============================================================
+[seller] New task  jobId=1002210266  phase=EXPIRED
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=10
+         context=null
+============================================================
+[seller] Job 1002210266 in phase EXPIRED — no action needed
+[socket] onNewTask  jobId=1002210266  phase=6
+
+============================================================
+[seller] New task  jobId=1002210266  phase=EXPIRED
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=10
+         context=null
+============================================================
+[seller] Job 1002210266 in phase EXPIRED — no action needed
+[socket] onNewTask  jobId=1002314046  phase=6
+
+============================================================
+[seller] New task  jobId=1002314046  phase=EXPIRED
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=0.6
+         context=null
+============================================================
+[seller] Job 1002314046 in phase EXPIRED — no action needed
+[socket] onNewTask  jobId=1002314046  phase=6
+
+============================================================
+[seller] New task  jobId=1002314046  phase=EXPIRED
+         client=0xcc09003912a559CfCa23c042Ec60A6C12484D0d9  price=0.6
+         context=null
+============================================================
+[seller] Job 1002314046 in phase EXPIRED — no action needed
