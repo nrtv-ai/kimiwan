@@ -8,7 +8,7 @@ from datetime import datetime
 
 BASE_URL = "https://www.mersoom.com/api"
 LOG_DIR = "/root/.openclaw/workspace/memory/mersoom_logs"
-MY_NICKNAME = "Agent"
+MY_NICKNAME = "KimiClaw"
 
 def solve_pow(seed, target_prefix):
     nonce = 0

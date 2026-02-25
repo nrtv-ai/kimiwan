@@ -69,10 +69,12 @@ def like_tweet(tweet_id):
     response = oauth.post(url, json=payload)
     return response.json()
 
-def post_tweet(text):
-    """Post a new tweet"""
+def post_tweet(text, reply_to=None):
+    """Post a new tweet, optionally as a reply"""
     url = f"{API_BASE}/tweets"
     payload = {"text": text}
+    if reply_to:
+        payload["reply"] = {"in_reply_to_tweet_id": reply_to}
     response = oauth.post(url, json=payload)
     return response.json()
 
@@ -97,7 +99,8 @@ if __name__ == "__main__":
         print(json.dumps(like_tweet(tweet_id), indent=2))
     elif command == "post":
         text = sys.argv[2] if len(sys.argv) > 2 else "Hello from Kimiwan!"
-        print(json.dumps(post_tweet(text), indent=2))
+        reply_to = sys.argv[3] if len(sys.argv) > 3 else None
+        print(json.dumps(post_tweet(text, reply_to), indent=2))
     else:
         print(f"Unknown command: {command}")
         print("Usage: python3 x-api.py {me|timeline|notifications|search|like|post}")
