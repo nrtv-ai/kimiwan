@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1a1a2e">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Hate Beat</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -13,16 +14,30 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
+            min-height: 100dvh; /* Dynamic viewport height for mobile */
             color: #fff;
             overflow: hidden;
             touch-action: none;
             user-select: none;
             -webkit-user-select: none;
+            -webkit-touch-callout: none;
         }
+        
+        /* Safe area insets for notched devices */
+        .safe-area {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+        
         .screen {
             display: none;
             padding: 20px;
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
             min-height: 100vh;
+            min-height: 100dvh;
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -46,6 +61,8 @@
             font-size: clamp(0.9rem, 4vw, 1.2rem);
             padding: 0 20px;
         }
+        
+        /* Mobile-optimized inputs */
         input, textarea {
             width: 100%;
             max-width: 400px;
@@ -54,10 +71,12 @@
             border-radius: 10px;
             background: rgba(255,255,255,0.05);
             color: #fff;
-            font-size: 1.1rem;
+            font-size: 16px; /* Prevents zoom on iOS */
             margin-bottom: 20px;
             outline: none;
             transition: box-shadow 0.3s;
+            -webkit-appearance: none;
+            appearance: none;
         }
         input:focus, textarea:focus {
             box-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
@@ -65,17 +84,22 @@
         input::placeholder, textarea::placeholder {
             color: #666;
         }
+        
+        /* Mobile-optimized buttons */
         button {
             background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
             border: none;
-            padding: 15px 40px;
+            padding: 18px 45px; /* Larger touch target */
             border-radius: 30px;
             color: #fff;
             font-size: 1.2rem;
             font-weight: bold;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.15s, box-shadow 0.15s;
             box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+            min-height: 56px; /* Minimum touch target size */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
         }
         button:hover, button:active {
             transform: scale(1.05);
@@ -85,6 +109,8 @@
             opacity: 0.5;
             pointer-events: none;
         }
+        
+        /* Hate scale - mobile optimized */
         .hate-scale {
             display: flex;
             flex-wrap: wrap;
@@ -94,8 +120,8 @@
             max-width: 400px;
         }
         .hate-btn {
-            width: 45px;
-            height: 45px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             border: 2px solid #e94560;
             background: transparent;
@@ -103,13 +129,20 @@
             font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
+            min-height: 48px;
+            min-width: 48px;
         }
         .hate-btn.selected {
             background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
             transform: scale(1.15);
             box-shadow: 0 0 15px rgba(233, 69, 96, 0.6);
         }
+        .hate-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Game Canvas */
         #gameCanvas {
             position: fixed;
             top: 0;
@@ -118,19 +151,26 @@
             height: 100%;
             z-index: 1;
             display: none;
+            touch-action: none;
         }
         #gameCanvas.active { display: block; }
+        
+        /* UI Overlay - with safe area */
         .ui-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             padding: 15px;
+            padding-top: max(15px, env(safe-area-inset-top));
+            padding-left: max(15px, env(safe-area-inset-left));
+            padding-right: max(15px, env(safe-area-inset-right));
             z-index: 10;
             pointer-events: none;
             display: none;
         }
         .ui-overlay.active { display: block; }
+        
         .hp-bar {
             width: 100%;
             height: 25px;
@@ -151,10 +191,12 @@
             font-size: 1rem;
             color: #aaa;
         }
+        
+        /* Score display - positioned for safe area */
         .score-display {
             position: fixed;
-            top: 60px;
-            right: 15px;
+            top: max(60px, env(safe-area-inset-top) + 45px);
+            right: max(15px, env(safe-area-inset-right));
             font-size: 1.5rem;
             font-weight: bold;
             color: #4ecca3;
@@ -164,8 +206,8 @@
         }
         .combo-display {
             position: fixed;
-            top: 90px;
-            right: 15px;
+            top: max(90px, env(safe-area-inset-top) + 75px);
+            right: max(15px, env(safe-area-inset-right));
             font-size: 1rem;
             color: #ffd700;
             text-shadow: 0 0 10px #ffd700;
@@ -175,55 +217,11 @@
             transition: opacity 0.3s;
         }
         .combo-display.active { opacity: 1; }
-        .victory-screen, .game-over-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.95);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            padding: 20px;
-        }
-        .victory-screen.active, .game-over-screen.active { display: flex; }
-        .victory-text {
-            font-size: clamp(2.5rem, 10vw, 4rem);
-            color: #4ecca3;
-            text-shadow: 0 0 30px #4ecca3;
-            margin-bottom: 20px;
-            animation: victoryPulse 1s ease-in-out infinite;
-        }
-        .game-over-text {
-            font-size: clamp(2.5rem, 10vw, 4rem);
-            color: #e94560;
-            text-shadow: 0 0 30px #e94560;
-            margin-bottom: 20px;
-        }
-        @keyframes victoryPulse {
-            0%, 100% { transform: scale(1); text-shadow: 0 0 30px #4ecca3; }
-            50% { transform: scale(1.05); text-shadow: 0 0 50px #4ecca3, 0 0 70px #4ecca3; }
-        }
-        .stats-box {
-            background: rgba(255,255,255,0.05);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-            text-align: center;
-            border: 1px solid rgba(233, 69, 96, 0.3);
-        }
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 10px 0;
-            font-size: 1.1rem;
-        }
+        
+        /* Beat indicator */
         .beat-indicator {
             position: fixed;
-            bottom: 20px;
+            bottom: max(20px, env(safe-area-inset-bottom));
             left: 50%;
             transform: translateX(-50%);
             width: 60px;
@@ -244,12 +242,14 @@
             50% { transform: translateX(-50%) scale(1.3); box-shadow: 0 0 30px rgba(233, 69, 96, 0.8); }
             100% { transform: translateX(-50%) scale(1); box-shadow: 0 0 0 rgba(233, 69, 96, 0); }
         }
+        
+        /* Rhythm bar */
         .rhythm-bar {
             position: fixed;
-            bottom: 80px;
+            bottom: max(80px, env(safe-area-inset-bottom) + 60px);
             left: 50%;
             transform: translateX(-50%);
-            width: 200px;
+            width: min(200px, 60vw);
             height: 10px;
             background: rgba(255,255,255,0.1);
             border-radius: 5px;
@@ -273,9 +273,11 @@
             0% { left: -20px; }
             100% { left: 100%; }
         }
+        
+        /* Tutorial */
         .tutorial {
             position: fixed;
-            bottom: 100px;
+            bottom: max(100px, env(safe-area-inset-bottom) + 80px);
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
@@ -285,8 +287,11 @@
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.3s;
+            max-width: 90vw;
         }
         .tutorial.active { opacity: 1; }
+        
+        /* Floating text */
         .floating-text {
             position: absolute;
             font-weight: bold;
@@ -302,6 +307,60 @@
         .perfect { color: #ffd700; text-shadow: 0 0 10px #ffd700; }
         .good { color: #4ecca3; text-shadow: 0 0 10px #4ecca3; }
         .miss { color: #e94560; text-shadow: 0 0 10px #e94560; }
+        
+        /* Victory/Game Over screens */
+        .victory-screen, .game-over-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 20px;
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+        }
+        .victory-screen.active, .game-over-screen.active { display: flex; }
+        .victory-text {
+            font-size: clamp(2.5rem, 10vw, 4rem);
+            color: #4ecca3;
+            text-shadow: 0 0 30px #4ecca3;
+            margin-bottom: 20px;
+            animation: victoryPulse 1s ease-in-out infinite;
+        }
+        .game-over-text {
+            font-size: clamp(2.5rem, 10vw, 4rem);
+            color: #e94560;
+            text-shadow: 0 0 30px #e94560;
+            margin-bottom: 20px;
+        }
+        @keyframes victoryPulse {
+            0%, 100% { transform: scale(1); text-shadow: 0 0 30px #4ecca3; }
+            50% { transform: scale(1.05); text-shadow: 0 0 50px #4ecca3, 0 0 70px #4ecca3; }
+        }
+        
+        .stats-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+            max-width: 90vw;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 1.1rem;
+        }
+        
+        /* High scores */
         .high-score-badge {
             background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
             color: #000;
@@ -321,6 +380,7 @@
             width: 100%;
             max-height: 200px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         .high-score-item {
             display: flex;
@@ -333,28 +393,124 @@
         .high-score-rank { color: #ffd700; font-weight: bold; width: 30px; }
         .high-score-task { flex: 1; text-align: left; padding: 0 10px; color: #aaa; }
         .high-score-points { color: #4ecca3; font-weight: bold; }
+        
+        /* Sound toggle - positioned for safe area */
         .sound-toggle {
             position: fixed;
-            top: 15px;
-            right: 15px;
+            top: max(15px, env(safe-area-inset-top));
+            right: max(15px, env(safe-area-inset-right));
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(233, 69, 96, 0.3);
             border-radius: 50%;
-            width: 45px;
-            height: 45px;
+            width: 48px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             z-index: 1000;
             font-size: 1.2rem;
+            min-height: 48px;
+            min-width: 48px;
         }
-        .sound-toggle:hover { background: rgba(255,255,255,0.2); }
+        .sound-toggle:hover, .sound-toggle:active {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1);
+        }
+        
+        /* Pause button for mobile */
+        .pause-btn {
+            position: fixed;
+            top: max(15px, env(safe-area-inset-top));
+            left: max(15px, env(safe-area-inset-left));
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(233, 69, 96, 0.3);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            font-size: 1.2rem;
+            min-height: 48px;
+            min-width: 48px;
+            pointer-events: auto;
+        }
+        .pause-btn:hover, .pause-btn:active {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1);
+        }
+        
+        /* Pause menu */
+        .pause-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            padding: 20px;
+        }
+        .pause-menu.active { display: flex; }
+        .pause-menu h2 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            color: #e94560;
+        }
+        .pause-menu button {
+            margin: 10px 0;
+            min-width: 200px;
+        }
+        
+        /* Performance indicator (debug) */
+        .fps-counter {
+            position: fixed;
+            top: max(70px, env(safe-area-inset-top) + 55px);
+            left: max(15px, env(safe-area-inset-left));
+            font-size: 0.8rem;
+            color: #666;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+        }
+        .fps-counter.active { opacity: 1; }
+        
+        /* Mobile-specific animations */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* Landscape mode adjustments */
+        @media (orientation: landscape) and (max-height: 500px) {
+            h1 { font-size: 1.8rem; margin-bottom: 5px; }
+            .subtitle { font-size: 0.8rem; margin-bottom: 15px; }
+            input, textarea { padding: 10px; margin-bottom: 10px; }
+            button { padding: 12px 30px; min-height: 44px; }
+            .hate-scale { gap: 5px; }
+            .hate-btn { width: 36px; height: 36px; min-width: 36px; min-height: 36px; }
+        }
     </style>
 </head>
 <body>
     <!-- Sound Toggle -->
     <div class="sound-toggle" id="soundToggle" onclick="toggleSound()">🔊</div>
+    
+    <!-- Pause Button (game only) -->
+    <div class="pause-btn" id="pauseBtn" onclick="togglePause()" style="display: none;">⏸️</div>
+    
+    <!-- FPS Counter (debug) -->
+    <div class="fps-counter" id="fpsCounter">FPS: 60</div>
     
     <!-- Screen 1: Task Input -->
     <div id="screen1" class="screen active">
@@ -362,7 +518,7 @@
         <p class="subtitle">What task do you absolutely hate?</p>
         <div class="high-score-badge" id="highScoreBadge" style="display: none;">🏆 High Score: <span id="highScoreValue">0</span></div>
         <div class="high-scores-list" id="highScoresList" style="display: none;"></div>
-        <input type="text" id="taskInput" placeholder="e.g., doing taxes, cleaning dishes..." maxlength="50">
+        <input type="text" id="taskInput" placeholder="e.g., doing taxes, cleaning dishes..." maxlength="50" autocomplete="off" autocorrect="off" autocapitalize="off">
         <button onclick="goToScreen2()">Continue →</button>
     </div>
 
@@ -390,7 +546,7 @@
     <div id="screen3" class="screen">
         <h1>HATE BEAT</h1>
         <p class="subtitle">Describe your hate with words (they become enemies!):</p>
-        <textarea id="hateWords" rows="4" placeholder="e.g., boring tedious painful soul-crushing miserable awful..." maxlength="200"></textarea>
+        <textarea id="hateWords" rows="4" placeholder="e.g., boring tedious painful soul-crushing miserable awful..." maxlength="200" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
         <button onclick="startBattle()">BATTLE!</button>
     </div>
 
@@ -411,6 +567,13 @@
         <div class="rhythm-marker"></div>
     </div>
     <div class="tutorial" id="tutorial">Tap the words to destroy them!<br>Time your taps with the beat for bonus points!</div>
+
+    <!-- Pause Menu -->
+    <div class="pause-menu" id="pauseMenu">
+        <h2>PAUSED</h2>
+        <button onclick="resumeGame()">Resume</button>
+        <button onclick="resetGame()">Quit to Menu</button>
+    </div>
 
     <!-- Victory Screen -->
     <div id="victoryScreen" class="victory-screen">
@@ -436,8 +599,82 @@
         <button onclick="resetGame()" style="margin-top: 20px;">Try Again</button>
     </div>
 
+    <script src="mobile-bridge.js"></script>
     <script>
-        // Game State
+        // ============================================
+        // MOBILE DETECTION & PERFORMANCE SETTINGS
+        // ============================================
+        const MobileUtils = {
+            isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+            isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream,
+            isAndroid: /Android/.test(navigator.userAgent),
+            isLowEnd: navigator.hardwareConcurrency <= 4 || /Android 4|Android 5|Android 6/.test(navigator.userAgent),
+            
+            // Haptic feedback
+            haptic(type = 'light') {
+                if (window.navigator && window.navigator.vibrate) {
+                    const patterns = {
+                        light: 10,
+                        medium: 20,
+                        heavy: 30,
+                        success: [10, 50, 10],
+                        error: [30, 30, 30]
+                    };
+                    window.navigator.vibrate(patterns[type] || 10);
+                }
+                // iOS haptic via Capacitor
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics) {
+                    const haptics = window.Capacitor.Plugins.Haptics;
+                    const types = {
+                        light: 'light',
+                        medium: 'medium',
+                        heavy: 'heavy',
+                        success: 'success',
+                        error: 'error'
+                    };
+                    haptics.impact({ style: types[type] || 'light' });
+                }
+            },
+            
+            // Prevent zoom on double tap
+            preventZoom() {
+                let lastTouchEnd = 0;
+                document.addEventListener('touchend', (e) => {
+                    const now = Date.now();
+                    if (now - lastTouchEnd <= 300) {
+                        e.preventDefault();
+                    }
+                    lastTouchEnd = now;
+                }, { passive: false });
+            },
+            
+            // Handle visibility change (pause game)
+            handleVisibility(gameState, pauseCallback) {
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden && gameState.isPlaying && !gameState.isPaused) {
+                        pauseCallback();
+                    }
+                });
+            },
+            
+            // Prevent pull-to-refresh on mobile
+            preventPullToRefresh() {
+                document.body.style.overscrollBehavior = 'none';
+                document.addEventListener('touchmove', (e) => {
+                    if (e.target === canvas || canvas.contains(e.target)) {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+            }
+        };
+        
+        // Apply mobile optimizations
+        MobileUtils.preventZoom();
+        MobileUtils.preventPullToRefresh();
+        
+        // ============================================
+        // GAME STATE
+        // ============================================
         let gameState = {
             task: '',
             hateLevel: 0,
@@ -453,13 +690,19 @@
             perfectHits: 0,
             totalHits: 0,
             lastBeatTime: 0,
-            beatInterval: 500, // ms between beats
+            beatInterval: 500,
             isPlaying: false,
+            isPaused: false,
             gameTime: 0,
-            soundEnabled: true
+            soundEnabled: true,
+            fps: 60,
+            frameCount: 0,
+            lastFpsTime: 0
         };
 
-        // Audio System - Web Audio API
+        // ============================================
+        // AUDIO SYSTEM - Web Audio API
+        // ============================================
         const AudioSys = {
             ctx: null,
             enabled: true,
@@ -467,6 +710,10 @@
             init() {
                 try {
                     this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    // iOS requires user interaction to start audio context
+                    if (this.ctx.state === 'suspended') {
+                        this.ctx.resume();
+                    }
                 } catch(e) {
                     console.log('Web Audio not supported');
                     this.enabled = false;
@@ -493,38 +740,23 @@
                 osc.stop(this.ctx.currentTime + duration);
             },
             
-            playHit() {
-                this.playTone(440, 0.1, 'square', 0.2);
-            },
-            
+            playHit() { this.playTone(440, 0.1, 'square', 0.2); },
             playPerfect() {
                 this.playTone(880, 0.15, 'sine', 0.3);
                 setTimeout(() => this.playTone(1100, 0.2, 'sine', 0.2), 50);
             },
-            
-            playGood() {
-                this.playTone(660, 0.12, 'sine', 0.25);
-            },
-            
-            playMiss() {
-                this.playTone(220, 0.2, 'sawtooth', 0.15);
-            },
-            
+            playGood() { this.playTone(660, 0.12, 'sine', 0.25); },
+            playMiss() { this.playTone(220, 0.2, 'sawtooth', 0.15); },
             playDestroy() {
                 this.playTone(550, 0.1, 'square', 0.2);
                 setTimeout(() => this.playTone(330, 0.15, 'sine', 0.15), 80);
             },
-            
-            playBeat() {
-                this.playTone(80, 0.05, 'sine', 0.1);
-            },
-            
+            playBeat() { this.playTone(80, 0.05, 'sine', 0.1); },
             playVictory() {
                 [440, 554, 659, 880].forEach((freq, i) => {
                     setTimeout(() => this.playTone(freq, 0.3, 'sine', 0.3), i * 100);
                 });
             },
-            
             playGameOver() {
                 [440, 330, 220, 110].forEach((freq, i) => {
                     setTimeout(() => this.playTone(freq, 0.4, 'sawtooth', 0.2), i * 150);
@@ -532,20 +764,60 @@
             }
         };
 
-        // High Score System - LocalStorage
-        const HighScores = {
-            KEY: 'hatebeat_scores',
-            
-            get() {
+        // ============================================
+        // STORAGE SYSTEM - localStorage with Capacitor fallback
+        // ============================================
+        const Storage = {
+            async get(key) {
+                // Try Capacitor Preferences first
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Preferences) {
+                    const result = await window.Capacitor.Plugins.Preferences.get({ key });
+                    return result.value ? JSON.parse(result.value) : null;
+                }
+                // Fallback to localStorage
                 try {
-                    return JSON.parse(localStorage.getItem(this.KEY)) || [];
+                    return JSON.parse(localStorage.getItem(key));
                 } catch(e) {
-                    return [];
+                    return null;
                 }
             },
             
-            add(score, task, hateLevel, maxCombo, accuracy) {
-                const scores = this.get();
+            async set(key, value) {
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Preferences) {
+                    await window.Capacitor.Plugins.Preferences.set({ key, value: JSON.stringify(value) });
+                    return;
+                }
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                } catch(e) {}
+            },
+            
+            async remove(key) {
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Preferences) {
+                    await window.Capacitor.Plugins.Preferences.remove({ key });
+                    return;
+                }
+                localStorage.removeItem(key);
+            }
+        };
+
+        // ============================================
+        // HIGH SCORE SYSTEM
+        // ============================================
+        const HighScores = {
+            KEY: 'hatebeat_scores',
+            cache: null,
+            
+            async get() {
+                if (this.cache) return this.cache;
+                // Use NativeStorage if available (Capacitor), otherwise fallback
+                const data = await (window.NativeStorage?.get(this.KEY) || Storage.get(this.KEY));
+                this.cache = data || [];
+                return this.cache;
+            },
+            
+            async add(score, task, hateLevel, maxCombo, accuracy) {
+                const scores = await this.get();
                 scores.push({
                     score: Math.floor(score),
                     task: task.substring(0, 30),
@@ -555,35 +827,45 @@
                     date: new Date().toISOString()
                 });
                 scores.sort((a, b) => b.score - a.score);
-                scores.splice(10); // Keep top 10
-                localStorage.setItem(this.KEY, JSON.stringify(scores));
+                scores.splice(10);
+                this.cache = scores;
+                await (window.NativeStorage?.set(this.KEY, scores) || Storage.set(this.KEY, scores));
                 return scores;
             },
             
-            getHighScore() {
-                const scores = this.get();
+            async getHighScore() {
+                const scores = await this.get();
                 return scores.length > 0 ? scores[0].score : 0;
             },
             
-            clear() {
-                localStorage.removeItem(this.KEY);
+            async clear() {
+                this.cache = [];
+                await (window.NativeStorage?.remove(this.KEY) || Storage.remove(this.KEY));
             }
         };
 
-        // Canvas setup
+        // ============================================
+        // CANVAS SETUP
+        // ============================================
         const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: false }); // Optimize for no transparency
         let animationId;
         let lastTime = 0;
 
         function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            const dpr = Math.min(window.devicePixelRatio || 1, 2); // Limit DPR for performance
+            canvas.width = window.innerWidth * dpr;
+            canvas.height = window.innerHeight * dpr;
+            canvas.style.width = window.innerWidth + 'px';
+            canvas.style.height = window.innerHeight + 'px';
+            ctx.scale(dpr, dpr);
         }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // Navigation
+        // ============================================
+        // NAVIGATION
+        // ============================================
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             const screen = document.getElementById(id);
@@ -617,36 +899,43 @@
             showScreen('screen3');
         }
 
-        // Word parsing - LOCAL ONLY, no AI
+        // ============================================
+        // WORD PARSING
+        // ============================================
         function parseWords(text) {
             return text.toLowerCase()
                 .replace(/[^a-z\s]/g, '')
                 .split(/\s+/)
                 .filter(w => w.length > 2)
-                .slice(0, 15); // Max 15 words for mobile
+                .slice(0, MobileUtils.isLowEnd ? 10 : 15);
         }
 
-        // Enemy class with rhythm mechanics
+        // ============================================
+        // ENEMY CLASS
+        // ============================================
         class WordEnemy {
             constructor(word, index, total) {
                 this.word = word;
                 this.hp = Math.ceil(word.length / 2);
                 this.maxHp = this.hp;
                 
-                // Spawn from edges with some randomness
+                // Spawn from edges
                 const side = Math.floor(Math.random() * 4);
                 const padding = 80;
+                const w = window.innerWidth;
+                const h = window.innerHeight;
+                
                 switch(side) {
-                    case 0: this.x = Math.random() * canvas.width; this.y = -padding; break;
-                    case 1: this.x = canvas.width + padding; this.y = Math.random() * canvas.height; break;
-                    case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + padding; break;
-                    case 3: this.x = -padding; this.y = Math.random() * canvas.height; break;
+                    case 0: this.x = Math.random() * w; this.y = -padding; break;
+                    case 1: this.x = w + padding; this.y = Math.random() * h; break;
+                    case 2: this.x = Math.random() * w; this.y = h + padding; break;
+                    case 3: this.x = -padding; this.y = Math.random() * h; break;
                 }
                 
-                // Speed based on hate level - faster = harder
+                // Speed based on hate level
                 const baseSpeed = 0.8 + (gameState.hateLevel * 0.4);
-                const centerX = canvas.width / 2;
-                const centerY = canvas.height / 2;
+                const centerX = w / 2;
+                const centerY = h / 2;
                 const angle = Math.atan2(centerY - this.y, centerX - this.x);
                 const speedVariation = 0.7 + Math.random() * 0.6;
                 this.vx = Math.cos(angle) * baseSpeed * speedVariation;
@@ -655,11 +944,12 @@
                 // Visual properties
                 this.baseSize = 18 + word.length * 2.5;
                 this.size = this.baseSize;
-                this.hue = 0 + Math.random() * 40; // Red-orange range
+                this.hue = Math.random() * 40;
                 this.shake = 0;
                 this.spawnTime = Date.now();
                 this.scale = 0;
                 this.targetScale = 1;
+                this.pulseOffset = Math.random() * Math.PI * 2;
             }
 
             update(deltaTime) {
@@ -672,18 +962,21 @@
                 this.x += this.vx;
                 this.y += this.vy;
                 
-                // Bounce off edges with padding
+                // Bounce off edges
                 const padding = 60;
+                const w = window.innerWidth;
+                const h = window.innerHeight;
+                
                 if (this.x < padding) { this.x = padding; this.vx *= -1; }
-                if (this.x > canvas.width - padding) { this.x = canvas.width - padding; this.vx *= -1; }
+                if (this.x > w - padding) { this.x = w - padding; this.vx *= -1; }
                 if (this.y < padding) { this.y = padding; this.vy *= -1; }
-                if (this.y > canvas.height - padding) { this.y = canvas.height - padding; this.vy *= -1; }
+                if (this.y > h - padding) { this.y = h - padding; this.vy *= -1; }
                 
                 if (this.shake > 0) this.shake--;
                 
                 // Pulse with beat
                 const beatPhase = (Date.now() % gameState.beatInterval) / gameState.beatInterval;
-                this.size = this.baseSize * (1 + Math.sin(beatPhase * Math.PI * 2) * 0.1);
+                this.size = this.baseSize * (1 + Math.sin(beatPhase * Math.PI * 2 + this.pulseOffset) * 0.1);
             }
 
             draw() {
@@ -692,9 +985,11 @@
                 const shakeX = this.shake > 0 ? (Math.random() - 0.5) * 10 : 0;
                 const shakeY = this.shake > 0 ? (Math.random() - 0.5) * 10 : 0;
                 
-                // Glow effect
-                ctx.shadowColor = `hsl(${this.hue}, 80%, 60%)`;
-                ctx.shadowBlur = 20;
+                // Glow effect (reduced on low-end devices)
+                if (!MobileUtils.isLowEnd) {
+                    ctx.shadowColor = `hsl(${this.hue}, 80%, 60%)`;
+                    ctx.shadowBlur = 20;
+                }
                 
                 // Word text
                 ctx.font = `bold ${this.size * this.scale}px sans-serif`;
@@ -727,7 +1022,9 @@
             }
         }
 
-        // Particle system
+        // ============================================
+        // PARTICLE SYSTEM
+        // ============================================
         class Particle {
             constructor(x, y, color) {
                 this.x = x;
@@ -764,12 +1061,15 @@
 
         function createParticles(x, y, hue) {
             const color = `hsl(${hue}, 80%, 60%)`;
-            for (let i = 0; i < 15; i++) {
+            const count = MobileUtils.isLowEnd ? 8 : 15;
+            for (let i = 0; i < count; i++) {
                 gameState.particles.push(new Particle(x, y, color));
             }
         }
 
-        // Floating text
+        // ============================================
+        // FLOATING TEXT
+        // ============================================
         function showFloatingText(x, y, text, type) {
             const el = document.createElement('div');
             el.className = `floating-text ${type}`;
@@ -780,7 +1080,9 @@
             setTimeout(() => el.remove(), 1000);
         }
 
-        // Rhythm mechanics
+        // ============================================
+        // RHYTHM MECHANICS
+        // ============================================
         function isOnBeat() {
             const now = Date.now();
             const beatPhase = (now % gameState.beatInterval) / gameState.beatInterval;
@@ -799,11 +1101,13 @@
         function triggerBeat() {
             const indicator = document.getElementById('beatIndicator');
             indicator.classList.remove('active');
-            void indicator.offsetWidth; // Force reflow
+            void indicator.offsetWidth;
             indicator.classList.add('active');
         }
 
-        // Game functions
+        // ============================================
+        // GAME FUNCTIONS
+        // ============================================
         function startBattle() {
             const hateText = document.getElementById('hateWords').value.trim();
             if (!hateText) return;
@@ -818,16 +1122,17 @@
             gameState.totalHits = 0;
             gameState.particles = [];
             gameState.isPlaying = true;
+            gameState.isPaused = false;
             gameState.gameTime = 0;
             
-            // Beat interval based on hate level (higher = faster)
+            // Beat interval based on hate level
             gameState.beatInterval = 600 - (gameState.hateLevel * 40);
             
             // Create enemies with staggered spawn
             gameState.enemies = [];
             gameState.words.forEach((word, i) => {
                 setTimeout(() => {
-                    if (gameState.isPlaying) {
+                    if (gameState.isPlaying && !gameState.isPaused) {
                         gameState.enemies.push(new WordEnemy(word, i, gameState.words.length));
                         updateUI();
                     }
@@ -840,14 +1145,22 @@
             document.getElementById('uiOverlay').classList.add('active');
             document.getElementById('rhythmBar').classList.add('active');
             document.getElementById('tutorial').classList.add('active');
+            document.getElementById('pauseBtn').style.display = 'flex';
             
-            // Hide tutorial after 5 seconds
             setTimeout(() => {
                 document.getElementById('tutorial').classList.remove('active');
             }, 5000);
             
             lastTime = performance.now();
             gameLoop(lastTime);
+            
+            // Haptic feedback
+            MobileUtils.haptic('medium');
+            
+            // Also trigger native haptic if available
+            if (window.triggerHaptic) {
+                window.triggerHaptic('medium');
+            }
         }
 
         function updateUI() {
@@ -866,12 +1179,25 @@
             }
         }
 
+        function updateFPS(currentTime) {
+            gameState.frameCount++;
+            if (currentTime - gameState.lastFpsTime >= 1000) {
+                gameState.fps = gameState.frameCount;
+                gameState.frameCount = 0;
+                gameState.lastFpsTime = currentTime;
+                document.getElementById('fpsCounter').textContent = 'FPS: ' + gameState.fps;
+            }
+        }
+
         function gameLoop(currentTime) {
-            if (!gameState.isPlaying) return;
+            if (!gameState.isPlaying || gameState.isPaused) return;
             
             const deltaTime = currentTime - lastTime;
             lastTime = currentTime;
             gameState.gameTime += deltaTime;
+            
+            // Update FPS
+            updateFPS(currentTime);
             
             // Trigger beat
             const beatNow = Math.floor(gameState.gameTime / gameState.beatInterval);
@@ -883,7 +1209,7 @@
             
             // Clear canvas with trail effect
             ctx.fillStyle = 'rgba(26, 26, 46, 0.25)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillRect(0, 0, canvas.width / (window.devicePixelRatio || 1), canvas.height / (window.devicePixelRatio || 1));
             
             // Update and draw enemies
             gameState.enemies.forEach(enemy => {
@@ -891,7 +1217,11 @@
                 enemy.draw();
             });
             
-            // Update and draw particles
+            // Update and draw particles (limit on low-end)
+            const maxParticles = MobileUtils.isLowEnd ? 50 : 100;
+            if (gameState.particles.length > maxParticles) {
+                gameState.particles = gameState.particles.slice(-maxParticles);
+            }
             gameState.particles = gameState.particles.filter(p => {
                 p.update();
                 p.draw();
@@ -907,13 +1237,15 @@
             animationId = requestAnimationFrame(gameLoop);
         }
 
-        // Input handling
+        // ============================================
+        // INPUT HANDLING - Enhanced for mobile
+        // ============================================
         function handleInput(clientX, clientY) {
-            if (!gameState.isPlaying) return;
+            if (!gameState.isPlaying || gameState.isPaused) return;
             
             const rect = canvas.getBoundingClientRect();
-            const x = clientX - rect.left;
-            const y = clientY - rect.top;
+            const x = (clientX - rect.left) * (canvas.width / rect.width / (window.devicePixelRatio || 1));
+            const y = (clientY - rect.top) * (canvas.height / rect.height / (window.devicePixelRatio || 1));
             
             let hit = false;
             for (let i = gameState.enemies.length - 1; i >= 0; i--) {
@@ -931,23 +1263,28 @@
                         gameState.perfectHits++;
                         gameState.combo++;
                         AudioSys.playPerfect();
+                        MobileUtils.haptic('success');
+                        if (window.triggerHaptic) window.triggerHaptic('success');
                     } else if (timing === 'good') {
                         points = 100;
                         gameState.combo++;
                         AudioSys.playGood();
+                        MobileUtils.haptic('light');
+                        if (window.triggerHaptic) window.triggerHaptic('light');
                     } else {
                         points = 50;
                         text = 'MISS';
                         type = 'miss';
                         gameState.combo = 0;
                         AudioSys.playMiss();
+                        MobileUtils.haptic('error');
+                        if (window.triggerHaptic) window.triggerHaptic('error');
                     }
                     
                     if (gameState.combo > gameState.maxCombo) {
                         gameState.maxCombo = gameState.combo;
                     }
                     
-                    // Apply combo multiplier
                     points *= (1 + gameState.combo * 0.1);
                     gameState.score += points;
                     gameState.totalHits++;
@@ -959,6 +1296,8 @@
                         AudioSys.playDestroy();
                         gameState.enemies.splice(i, 1);
                         gameState.wordsDestroyed++;
+                        MobileUtils.haptic('medium');
+                        if (window.triggerHaptic) window.triggerHaptic('medium');
                     } else {
                         AudioSys.playHit();
                     }
@@ -970,19 +1309,75 @@
             if (!hit) {
                 gameState.combo = 0;
                 updateUI();
+                MobileUtils.haptic('error');
+                if (window.triggerHaptic) window.triggerHaptic('error');
             }
         }
 
-        // Touch/Click handlers
-        canvas.addEventListener('click', (e) => handleInput(e.clientX, e.clientY));
+        // Touch/Click handlers with multi-touch support
+        const activeTouches = new Map();
+        
+        canvas.addEventListener('click', (e) => {
+            handleInput(e.clientX, e.clientY);
+        });
+        
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            for (let i = 0; i < e.touches.length; i++) {
-                handleInput(e.touches[i].clientX, e.touches[i].clientY);
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const touch = e.changedTouches[i];
+                activeTouches.set(touch.identifier, { x: touch.clientX, y: touch.clientY });
+                handleInput(touch.clientX, touch.clientY);
+            }
+        }, { passive: false });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                activeTouches.delete(e.changedTouches[i].identifier);
+            }
+        }, { passive: false });
+        
+        // Prevent default touch behaviors
+        document.addEventListener('touchmove', (e) => {
+            if (gameState.isPlaying) {
+                e.preventDefault();
             }
         }, { passive: false });
 
-        function victory() {
+        // ============================================
+        // PAUSE SYSTEM
+        // ============================================
+        function togglePause() {
+            if (!gameState.isPlaying) return;
+            
+            gameState.isPaused = !gameState.isPaused;
+            const pauseMenu = document.getElementById('pauseMenu');
+            
+            if (gameState.isPaused) {
+                pauseMenu.classList.add('active');
+                cancelAnimationFrame(animationId);
+            } else {
+                pauseMenu.classList.remove('active');
+                lastTime = performance.now();
+                gameLoop(lastTime);
+            }
+            MobileUtils.haptic('light');
+            if (window.triggerHaptic) window.triggerHaptic('light');
+        }
+        
+        function resumeGame() {
+            gameState.isPaused = false;
+            document.getElementById('pauseMenu').classList.remove('active');
+            lastTime = performance.now();
+            gameLoop(lastTime);
+            MobileUtils.haptic('light');
+            if (window.triggerHaptic) window.triggerHaptic('light');
+        }
+
+        // ============================================
+        // VICTORY / GAME OVER
+        // ============================================
+        async function victory() {
             gameState.isPlaying = false;
             cancelAnimationFrame(animationId);
             
@@ -990,11 +1385,11 @@
                 ? Math.round((gameState.perfectHits / gameState.totalHits) * 100) 
                 : 0;
             
-            // Save high score
-            HighScores.add(gameState.score, gameState.task, gameState.hateLevel, gameState.maxCombo, accuracy);
+            await HighScores.add(gameState.score, gameState.task, gameState.hateLevel, gameState.maxCombo, accuracy);
             
-            // Play victory sound
             AudioSys.playVictory();
+            MobileUtils.haptic('success');
+            if (window.triggerHaptic) window.triggerHaptic('success');
             
             document.getElementById('victoryTask').textContent = gameState.task;
             document.getElementById('finalScore').textContent = Math.floor(gameState.score);
@@ -1003,6 +1398,7 @@
             document.getElementById('accuracy').textContent = accuracy + '%';
             
             document.getElementById('victoryScreen').classList.add('active');
+            document.getElementById('pauseBtn').style.display = 'none';
         }
 
         function showGameOver() {
@@ -1010,19 +1406,27 @@
             cancelAnimationFrame(animationId);
             
             AudioSys.playGameOver();
+            MobileUtils.haptic('error');
+            if (window.triggerHaptic) window.triggerHaptic('error');
             
             document.getElementById('gameOverScore').textContent = Math.floor(gameState.score);
             document.getElementById('enemiesDestroyed').textContent = gameState.wordsDestroyed;
             document.getElementById('gameOverScreen').classList.add('active');
+            document.getElementById('pauseBtn').style.display = 'none';
         }
 
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
         function toggleSound() {
             AudioSys.enabled = !AudioSys.enabled;
             document.getElementById('soundToggle').textContent = AudioSys.enabled ? '🔊' : '🔇';
+            MobileUtils.haptic('light');
+            if (window.triggerHaptic) window.triggerHaptic('light');
         }
 
-        function displayHighScores() {
-            const scores = HighScores.get();
+        async function displayHighScores() {
+            const scores = await HighScores.get();
             const badge = document.getElementById('highScoreBadge');
             const list = document.getElementById('highScoresList');
             
@@ -1047,15 +1451,18 @@
 
         function resetGame() {
             gameState.isPlaying = false;
+            gameState.isPaused = false;
             cancelAnimationFrame(animationId);
             
             document.getElementById('victoryScreen').classList.remove('active');
             document.getElementById('gameOverScreen').classList.remove('active');
+            document.getElementById('pauseMenu').classList.remove('active');
             canvas.classList.remove('active');
             document.getElementById('uiOverlay').classList.remove('active');
             document.getElementById('rhythmBar').classList.remove('active');
             document.getElementById('tutorial').classList.remove('active');
             document.getElementById('comboDisplay').classList.remove('active');
+            document.getElementById('pauseBtn').style.display = 'none';
             
             // Reset state
             gameState = {
@@ -1075,8 +1482,12 @@
                 lastBeatTime: 0,
                 beatInterval: 500,
                 isPlaying: false,
+                isPaused: false,
                 gameTime: 0,
-                soundEnabled: gameState.soundEnabled
+                soundEnabled: gameState.soundEnabled,
+                fps: 60,
+                frameCount: 0,
+                lastFpsTime: 0
             };
             
             // Reset UI
@@ -1087,20 +1498,36 @@
             document.getElementById('continueBtn2').disabled = true;
             selectedHate = 0;
             
-            // Refresh high scores display
             displayHighScores();
             
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             showScreen('screen1');
         }
 
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        
         // Initialize audio on first interaction
-        document.addEventListener('click', () => {
+        function initAudio() {
             AudioSys.init();
-        }, { once: true });
-        document.addEventListener('touchstart', () => {
-            AudioSys.init();
-        }, { once: true });
+            document.removeEventListener('click', initAudio);
+            document.removeEventListener('touchstart', initAudio);
+        }
+        document.addEventListener('click', initAudio, { once: true });
+        document.addEventListener('touchstart', initAudio, { once: true });
+        
+        // Handle visibility change
+        MobileUtils.handleVisibility(gameState, togglePause);
+        
+        // Handle back button on Android
+        document.addEventListener('backbutton', (e) => {
+            if (gameState.isPlaying) {
+                e.preventDefault();
+                togglePause();
+            }
+        }, false);
         
         // Load high scores on page load
         window.addEventListener('load', displayHighScores);
@@ -1113,8 +1540,17 @@
                 } else if (document.getElementById('screen3').classList.contains('active')) {
                     startBattle();
                 }
+            } else if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+                if (gameState.isPlaying) {
+                    togglePause();
+                }
             }
         });
+        
+        // Prevent zoom on iOS
+        document.addEventListener('gesturestart', (e) => e.preventDefault());
+        document.addEventListener('gesturechange', (e) => e.preventDefault());
+        document.addEventListener('gestureend', (e) => e.preventDefault());
     </script>
 </body>
 </html>
