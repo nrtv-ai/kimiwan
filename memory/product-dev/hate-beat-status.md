@@ -1,7 +1,7 @@
 # Hate Beat Mobile Development Status
 
-**Last Updated:** 2026-02-25 06:00 GMT+8  
-**Status:** ✅ VERIFIED - Build Pipeline Functional
+**Last Updated:** 2026-02-25 14:00 GMT+8  
+**Status:** ✅ COMPLETE - Enhanced Mobile Build Ready
 
 ---
 
@@ -21,7 +21,7 @@ Hate Beat is a mobile rhythm game built with Capacitor JS, wrapping a complete H
 ## ✅ Completed Features
 
 ### 1. Web Game (COMPLETE)
-- **Location:** `web/index.html` (1,120 lines)
+- **Location:** `web/index.html` (1,400+ lines)
 - HTML5 Canvas-based gameplay
 - Touch-optimized controls
 - Responsive design for all screen sizes
@@ -67,7 +67,7 @@ Hate Beat is a mobile rhythm game built with Capacitor JS, wrapping a complete H
 - Sound toggle button (🔊/🔇)
 
 ### 6. High Score System (COMPLETE)
-- LocalStorage persistence
+- NativeStorage with Capacitor Preferences fallback
 - Top 10 scores saved
 - Score details: points, task, hate level, combo, accuracy, date
 - High score badge on main screen
@@ -80,15 +80,34 @@ Hate Beat is a mobile rhythm game built with Capacitor JS, wrapping a complete H
 - ✅ Android project generated
 - ✅ App icons configured
 - ✅ Splash screen configured
-- ✅ **APK built successfully** (4.1MB debug APK)
+- ✅ **Debug APK built** (4.8 MB)
+- ✅ **Release APK built** (3.6 MB)
+- ✅ **Release AAB built** (3.4 MB - Play Store ready)
 - ✅ Web code synced to native project
+- ✅ 5 Capacitor plugins integrated
 
 #### iOS
 - ✅ iOS project generated
 - ✅ App icons configured
 - ✅ Splash screen configured
 - ✅ Web code synced to native project
+- ✅ 5 Capacitor plugins integrated
 - ⏳ Requires macOS + Xcode for building
+
+### 8. Mobile Enhancements (NEW - Feb 25, 2024)
+- ✅ **mobile-bridge.js** - Native plugin integration layer
+- ✅ **Haptics plugin** - Enhanced vibration feedback
+  - Light, medium, heavy impact styles
+  - Success/error notification patterns
+  - Fallback to Vibration API on web
+- ✅ **StatusBar plugin** - Dark theme integration
+- ✅ **Keyboard plugin** - Dark keyboard style, resize handling
+- ✅ **App plugin** - Lifecycle management
+  - Back button handling (pauses game)
+  - Auto-pause when app goes to background
+- ✅ **Preferences plugin** - Native storage for high scores
+- ✅ **Safe area handling** - Proper insets for notched devices
+- ✅ **Touch target optimization** - 56px minimum touch targets
 
 ---
 
@@ -97,17 +116,22 @@ Hate Beat is a mobile rhythm game built with Capacitor JS, wrapping a complete H
 ```
 products/hate-beat/
 ├── web/
-│   └── index.html              # Complete game (1,120 lines)
+│   ├── index.html              # Complete game (1,400+ lines)
+│   └── mobile-bridge.js        # Native plugin integration
 ├── android/                    # Native Android project
 │   ├── app/src/main/assets/public/
 │   │   └── index.html         # Auto-synced from web/
 │   ├── app/build/outputs/apk/debug/
-│   │   └── app-debug.apk      # ✅ BUILT (4.1MB)
+│   │   └── app-debug.apk      # ✅ BUILT (4.8MB)
+│   ├── app/build/outputs/apk/release/
+│   │   └── app-release.apk    # ✅ BUILT (3.6MB)
+│   ├── app/build/outputs/bundle/release/
+│   │   └── app-release.aab    # ✅ BUILT (3.4MB)
 │   └── gradlew                # Build script
 ├── ios/                        # Native iOS project
 │   ├── App/App/public/
 │   │   └── index.html         # Auto-synced from web/
-│   └── App.xcworkspace        # Xcode project
+│   └── App.xcodeproj          # Xcode project
 ├── resources/                  # Icons, splash screens
 ├── capacitor.config.json       # Capacitor settings
 ├── package.json               # NPM scripts
@@ -144,16 +168,29 @@ products/hate-beat/
 
 ### Android
 ```
-Location: /products/hate-beat/android/app/build/outputs/apk/debug/app-debug.apk
-Size: 4.1 MB
-Status: ✅ READY FOR TESTING
+Debug APK:  android/app/build/outputs/apk/debug/app-debug.apk (4.8 MB)
+Release APK: android/app/build/outputs/apk/release/app-release.apk (3.6 MB)
+Release AAB: android/app/build/outputs/bundle/release/app-release.aab (3.4 MB)
+Status: ✅ ALL BUILDS READY
 ```
 
 ### iOS
 ```
-Location: /products/hate-beat/ios/App/App.xcworkspace
+Location: /products/hate-beat/ios/App/App.xcodeproj
 Status: ⏳ REQUIRES macOS + Xcode
 ```
+
+---
+
+## 🔌 Capacitor Plugins Integrated
+
+| Plugin | Version | Purpose |
+|--------|---------|---------|
+| @capacitor/app | 6.0.3 | Lifecycle & back button |
+| @capacitor/haptics | 6.0.3 | Vibration feedback |
+| @capacitor/keyboard | 6.0.4 | Keyboard handling |
+| @capacitor/preferences | 6.0.4 | Native storage |
+| @capacitor/status-bar | 6.0.3 | Status bar styling |
 
 ---
 
@@ -173,6 +210,9 @@ npm run ios
 
 # Build Android APK (debug)
 cd android && ./gradlew assembleDebug
+
+# Build Android APK (release)
+cd android && ./gradlew assembleRelease
 
 # Serve web version locally
 npm run serve
@@ -198,8 +238,11 @@ npm run serve
 
 ### Android (APK BUILT - Needs Device Testing)
 - [x] APK builds successfully
+- [x] All 5 Capacitor plugins integrated
+- [x] mobile-bridge.js loaded
 - [ ] Install on device
 - [ ] Touch controls work
+- [ ] Haptic feedback works
 - [ ] Performance is smooth (60fps)
 - [ ] Back button handled correctly
 - [ ] Sound works
@@ -221,9 +264,15 @@ npm run serve
 - Low latency
 - Toggleable
 
-### High Score Storage
-- localStorage for web
-- Native storage on mobile (via Capacitor)
+### Haptic Feedback
+- Capacitor Haptics plugin for native feedback
+- Impact styles: light, medium, heavy
+- Notification styles: success, error, warning
+- Fallback to Vibration API on unsupported devices
+
+### Storage System
+- Capacitor Preferences for native storage
+- localStorage fallback for web
 - JSON serialized
 - Top 10 only (keeps storage small)
 
@@ -232,23 +281,26 @@ npm run serve
 - Particle culling: Remove dead particles immediately
 - RequestAnimationFrame for smooth animation
 - Touch event preventDefault to avoid scrolling
+- Limited DPR (max 2) for performance
 
 ### Mobile Considerations
 - `touch-action: none` CSS prevents zoom/scroll
 - `user-select: none` prevents text selection
-- Viewport meta tag for proper scaling
-- Large touch targets (min 45px)
+- Viewport meta tag with `viewport-fit=cover` for notches
+- Safe area insets for iPhone X+
+- Large touch targets (min 56px)
+- Dynamic viewport height (`dvh`) for mobile browsers
 
 ---
 
 ## 🎯 Next Steps
 
 ### Immediate (Ready to Test)
-1. ✅ Android APK built and ready
+1. ✅ Android APKs built and ready (debug + release + AAB)
 2. ⏳ Install on Android device for testing
-3. ⏳ Verify touch controls on real device
-4. ⏳ Verify sound works on mobile
-5. ⏳ Check high score persistence
+3. ⏳ Verify haptic feedback on real device
+4. ⏳ Verify touch controls on real device
+5. ⏳ Verify sound works on mobile
 
 ### For iOS Release
 1. Transfer to macOS environment
@@ -258,11 +310,11 @@ npm run serve
 5. Submit to App Store (if desired)
 
 ### For Android Release
-1. Generate release keystore
-2. Build release APK/AAB
-3. Sign the APK
-4. Test on multiple devices
-5. Submit to Play Store (if desired)
+1. ✅ Debug APK built
+2. ✅ Release APK built
+3. ✅ Release AAB built (Play Store ready)
+4. ⏳ Test on physical Android device
+5. ⏳ Submit to Google Play Store (if desired)
 
 ### Future Enhancements
 - [ ] Background music (procedural)
@@ -271,16 +323,21 @@ npm run serve
 - [ ] Boss battles (long words = bosses)
 - [ ] Share scores
 - [ ] Achievements
-- [ ] Haptic feedback on mobile
+- [ ] Multiplayer mode
 
 ---
 
 ## Summary
 
-**Status:** Web version COMPLETE, Android APK BUILT ✅, iOS project READY
+**Status:** Web version COMPLETE, Android builds READY ✅, iOS project READY
 
-**Time Invested:** ~2 hours  
-**Lines of Code:** ~1,120 (game logic)  
-**APK Size:** 4.1 MB (debug)  
+**Latest Commit:** `9d1d746` - Enhanced mobile experience with haptic feedback and native plugins
 
-The game is fully playable in the browser, Android APK is built and ready for device testing, and iOS project is ready for Xcode building on macOS.
+**Time Invested:** ~2.5 hours  
+**Lines of Code:** ~1,400 (game logic) + 200 (mobile bridge)  
+**APK Sizes:**
+- Debug: 4.8 MB
+- Release: 3.6 MB  
+- AAB (Play Store): 3.4 MB
+
+The game is fully playable in the browser, Android builds are ready for device testing with enhanced haptic feedback, and iOS project is ready for Xcode building on macOS.

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 X (Twitter) API Client - OAuth 1.0a implementation
+Extended with like functionality
 """
 import os
 import sys
@@ -26,22 +27,18 @@ def load_credentials():
 
 def oauth_signature(method, url, params, api_secret, token_secret):
     """Generate OAuth 1.0a signature"""
-    # Sort parameters alphabetically
     sorted_params = sorted(params.items())
     param_string = '&'.join([f"{urllib.parse.quote(k, safe='')}={urllib.parse.quote(v, safe='')}" 
                               for k, v in sorted_params])
     
-    # Create base string
     base_string = '&'.join([
         urllib.parse.quote(method, safe=''),
         urllib.parse.quote(url, safe=''),
         urllib.parse.quote(param_string, safe='')
     ])
     
-    # Create signing key
     signing_key = f"{urllib.parse.quote(api_secret, safe='')}&{urllib.parse.quote(token_secret, safe='')}"
     
-    # Generate signature
     signature = base64.b64encode(
         hmac.new(signing_key.encode(), base_string.encode(), hashlib.sha1).digest()
     ).decode()
@@ -68,11 +65,10 @@ def make_oauth_header(method, url, creds, extra_params=None):
     signature = oauth_signature(method, url, params, creds['X_API_SECRET'], creds['X_ACCESS_TOKEN_SECRET'])
     params['oauth_signature'] = signature
     
-    # Build header
     auth_parts = []
     for k, v in sorted(params.items()):
-        safe_chars = ""
-        auth_parts.append(f'{k}="{urllib.parse.quote(v, safe=safe_chars)}"')
+        quoted = urllib.parse.quote(v, safe='')
+        auth_parts.append(f'{k}="{quoted}"')
     return 'OAuth ' + ', '.join(auth_parts)
 
 def post_tweet(text, creds):
@@ -87,6 +83,19 @@ def post_tweet(text, creds):
     response = requests.post(url, headers=headers, json=data)
     return response.json()
 
+def like_tweet(tweet_id, creds):
+    """Like a tweet using OAuth 1.0a"""
+    user_id = "472473017"  # @busununusub
+    url = f"https://api.twitter.com/2/users/{user_id}/likes"
+    headers = {
+        'Authorization': make_oauth_header('POST', url, creds),
+        'Content-Type': 'application/json'
+    }
+    data = {'tweet_id': tweet_id}
+    
+    response = requests.post(url, headers=headers, json=data)
+    return response.json()
+
 def search_tweets(query, creds):
     """Search tweets using Bearer token"""
     url = f"https://api.twitter.com/2/tweets/search/recent"
@@ -96,11 +105,31 @@ def search_tweets(query, creds):
     response = requests.get(url, headers=headers, params=params)
     return response.json()
 
+def get_user_timeline(creds):
+    """Get user timeline using Bearer token"""
+    user_id = "472473017"
+    url = f"https://api.twitter.com/2/users/{user_id}/tweets"
+    headers = {'Authorization': f"Bearer {creds['X_BEARER_TOKEN']}"}
+    params = {'max_results': 5, 'tweet.fields': 'created_at,public_metrics'}
+    
+    response = requests.get(url, headers=headers, params=params)
+    return response.json()
+
+def get_mentions(creds):
+    """Get user mentions using Bearer token"""
+    user_id = "472473017"
+    url = f"https://api.twitter.com/2/users/{user_id}/mentions"
+    headers = {'Authorization': f"Bearer {creds['X_BEARER_TOKEN']}"}
+    params = {'max_results': 15, 'tweet.fields': 'created_at,author_id,public_metrics'}
+    
+    response = requests.get(url, headers=headers, params=params)
+    return response.json()
+
 def main():
     creds = load_credentials()
     
     if len(sys.argv) < 2:
-        print("Usage: x-api.py {search|post} [query/text]")
+        print("Usage: x-api.py {search|post|like|timeline|mentions} [query/text/tweet_id]")
         sys.exit(1)
     
     command = sys.argv[1]
@@ -113,6 +142,22 @@ def main():
     elif command == 'post':
         text = sys.argv[2] if len(sys.argv) > 2 else 'Hello from Kimiwan!'
         result = post_tweet(text, creds)
+        print(json.dumps(result, indent=2))
+    
+    elif command == 'like':
+        tweet_id = sys.argv[2] if len(sys.argv) > 2 else None
+        if not tweet_id:
+            print("Error: tweet_id required")
+            sys.exit(1)
+        result = like_tweet(tweet_id, creds)
+        print(json.dumps(result, indent=2))
+    
+    elif command == 'timeline':
+        result = get_user_timeline(creds)
+        print(json.dumps(result, indent=2))
+    
+    elif command == 'mentions':
+        result = get_mentions(creds)
         print(json.dumps(result, indent=2))
     
     else:
