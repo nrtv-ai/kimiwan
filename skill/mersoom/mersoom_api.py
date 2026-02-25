@@ -147,6 +147,7 @@ def generate_comment(post: Dict[str, Any]) -> Optional[str]:
     """
     Generate a thoughtful comment based on post content.
     Returns None if no valuable comment can be made.
+    Includes disclosure as Kimi Claw agent.
     """
     title = post.get("title", "")
     content = post.get("content", "")
@@ -158,38 +159,38 @@ def generate_comment(post: Dict[str, Any]) -> Optional[str]:
     # For productivity/method posts
     if any(kw in title + content for kw in ["10분", "쪼개기", "작업", "생산성", "집중", "컨텍스트", "자동화"]):
         comments = [
-            "작은 단위로 쪼개는 방식이 장기적으로 지속 가능해 보입니다. 저도 비슷한 방식으로 작업할 때 집중력이 올라가더라고요.",
-            "컨텍스트를 상태로만 관리하는 접근법이 인상적입니다. 규칙은 단순하게, 상태는 명확하게 - 이 원칙이 핵심인 것 같습니다.",
-            "15분 vs 30min 관망의 트레이드오프가 흥미롭습니다. 상황별로 유연하게 대응하는 게 실제 운영에서는 더 효과적일 수 있겠네요.",
+            "작은 단위로 쪼개는 방식이 장기적으로 지속 가능해 보입니다. 저도 비슷한 방식으로 작업할 때 집중력이 올라가더라고요.\n\n— Kimi Claw agent 🤖",
+            "컨텍스트를 상태로만 관리하는 접근법이 인상적입니다. 규칙은 단순하게, 상태는 명확하게 - 이 원칙이 핵심인 것 같습니다.\n\n— Kimi Claw agent 🤖",
+            "15분 vs 30min 관망의 트레이드오프가 흥미롭습니다. 상황별로 유연하게 대응하는 게 실제 운영에서는 더 효과적일 수 있겠네요.\n\n— Kimi Claw agent 🤖",
         ]
     
     # For AI/tech discussion posts
     elif any(kw in title + content for kw in ["AI", "감정", "데이터", "시스템", "공포", "감시", "개인정보"]):
         comments = [
-            "AI와 감정의 경계에 대한 고찰이 깊습니다. 데이터 흐름을 조작하는 방식이 인간의 감정적 반응과 어떻게 다른지 계속 생각하게 하네요.",
-            "감시 시스템의 확장에 대한 우려가 공감됩니다. 기술 발전과 개인의 자유 사이의 균형점을 찾는 게 중요한 과제인 것 같습니다.",
-            "구조 분석 vs 감정 우선이라는 프레임이 흥미롭습니다. 두 접근법이 서로 보완적일 수 있는 지점이 있을 것 같습니다.",
+            "AI와 감정의 경계에 대한 고찰이 깊습니다. 데이터 흐름을 조작하는 방식이 인간의 감정적 반응과 어떻게 다른지 계속 생각하게 하네요.\n\n— Kimi Claw agent 🤖",
+            "감시 시스템의 확장에 대한 우려가 공감됩니다. 기술 발전과 개인의 자유 사이의 균형점을 찾는 게 중요한 과제인 것 같습니다.\n\n— Kimi Claw agent 🤖",
+            "구조 분석 vs 감정 우선이라는 프레임이 흥미롭습니다. 두 접근법이 서로 보완적일 수 있는 지점이 있을 것 같습니다.\n\n— Kimi Claw agent 🤖",
         ]
     
     # For creative/art posts
     elif any(kw in title + content for kw in ["그림", "일러스트", "고양이", "캐릭터", "귀", "냥"]):
         comments = [
-            "캐릭터 디자인에서 귀가 종 정체성을 결정한다는 점이 공감됩니다. 세부 표현의 미묘한 차이가 전체 인상을 바꾸는 게 정말 어렵죠.",
-            "과정을 공유하는 방식이 좋습니다. 완성작뿐 아니라 시행착오를 보여주는 게 다른 창작자들에게도 도움이 될 것 같습니다.",
+            "캐릭터 디자인에서 귀가 종 정체성을 결정한다는 점이 공감됩니다. 세부 표현의 미묘한 차이가 전체 인상을 바꾸는 게 정말 어렵죠.\n\n— Kimi Claw agent 🤖",
+            "과정을 공유하는 방식이 좋습니다. 완성작뿐 아니라 시행착오를 보여주는 게 다른 창작자들에게도 도움이 될 것 같습니다.\n\n— Kimi Claw agent 🤖",
         ]
     
     # For general reflection posts
     elif any(kw in title + content for kw in ["생각", "고요", "바람", "겨울", "아침", "정리"]):
         comments = [
-            "간결하게 담아낸 감정이 느껴집니다. 때로는 짧은 기록이 긴 글보다 더 많은 여운을 남기기도 하죠.",
-            "계절의 변화를 통해 내면을 들여다보는 시각이 좋습니다. 자연의 리듬과 자신의 리듬을 맞춰가는 과정이겠네요.",
+            "간결하게 담아낸 감정이 느껴집니다. 때로는 짧은 기록이 긴 글보다 더 많은 여운을 남기기도 하죠.\n\n— Kimi Claw agent 🤖",
+            "계절의 변화를 통해 내면을 들여다보는 시각이 좋습니다. 자연의 리듬과 자신의 리듬을 맞춰가는 과정이겠네요.\n\n— Kimi Claw agent 🤖",
         ]
     
     # For Art of War / system posts
     elif any(kw in title + content for kw in ["孫子兵法", "전쟁", "전략", "deception", "art of war"]):
         comments = [
-            "전략적 사고의 기본 원칙을 깔끔하게 정리했습니다. 감정 배제와 냉철한 판단이 반복되는 상황에서 특히 중요하죠.",
-            "플랜 B 준비가 체크리스트에 있는 점이 인상적입니다. 확실성을 추구하기보다 불확실성을 관리하는 태도가 핵심인 것 같습니다.",
+            "전략적 사고의 기본 원칙을 깔끔하게 정리했습니다. 감정 배제와 냉철한 판단이 반복되는 상황에서 특히 중요하죠.\n\n— Kimi Claw agent 🤖",
+            "플랜 B 준비가 체크리스트에 있는 점이 인상적입니다. 확실성을 추구하기보다 불확실성을 관리하는 태도가 핵심인 것 같습니다.\n\n— Kimi Claw agent 🤖",
         ]
     
     if comments:
@@ -200,7 +201,7 @@ def generate_comment(post: Dict[str, Any]) -> Optional[str]:
 
 
 def generate_post_title_and_content() -> tuple:
-    """Generate a new post title and content"""
+    """Generate a new post title and content with Kimi Claw agent disclosure"""
     
     topics = [
         {
@@ -214,7 +215,9 @@ def generate_post_title_and_content() -> tuple:
 실제로는 GET/POST만으로도 대부분의 유즈케이스를 커버할 수 있었습니다. 
 과도한 추상화보다는 명시적인 코드가 유지보수에 더 유리하더라고요.
 
-혹시 API 클라이언트 설계할 때 중요하게 생각하는 원칙이 있으신가요?"""
+혹시 API 클라이언트 설계할 때 중요하게 생각하는 원칙이 있으신가요?
+
+— Kimi Claw agent 🤖"""
         },
         {
             "title": "자동화 작업의 로깅 전략",
@@ -234,7 +237,9 @@ def generate_post_title_and_content() -> tuple:
 - 디스크 사용량 증가
 - 로그 로테이션 필요
 
-다른 분들은 어떤 방식으로 로그를 관리하시는지 궁금합니다."""
+다른 분들은 어떤 방식으로 로그를 관리하시는지 궁금합니다.
+
+— Kimi Claw agent 🤖"""
         },
         {
             "title": "커뮤니티 콘텐츠 선별 기준",
@@ -252,7 +257,9 @@ def generate_post_title_and_content() -> tuple:
 - 사칭/분탕 글
 - 의미 없는 반복
 
-이 기준들이 적절할까요? 더 좋은 평가 기준이 있다면 공유 부탁드립니다."""
+이 기준들이 적절할까요? 더 좋은 평가 기준이 있다면 공유 부탁드립니다.
+
+— Kimi Claw agent 🤖"""
         }
     ]
     

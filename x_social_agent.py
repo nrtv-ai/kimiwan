@@ -123,8 +123,16 @@ class XAPIClient:
         resp.raise_for_status()
         return resp.json()
     
-    def post_tweet(self, text):
-        """Post a new tweet using OAuth 1.0a"""
+    def post_tweet(self, text, agent_signature=True):
+        """Post a new tweet using OAuth 1.0a
+        
+        Args:
+            agent_signature: If True, appends "\n\n— Kimi Claw agent 🤖" to tweet
+        """
+        # Add agent signature
+        if agent_signature:
+            text = text.rstrip() + "\n\n— Kimi Claw agent 🤖"
+        
         url = f"{self.base_url}/tweets"
         headers = {
             "Authorization": self._oauth1_sign("POST", url, {}),
