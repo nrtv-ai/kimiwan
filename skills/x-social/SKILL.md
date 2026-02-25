@@ -7,6 +7,17 @@ description: X (Twitter) social media engagement via API. Read timeline, post tw
 
 Engage with X (Twitter) via API v2 for timeline reading, posting, searching, and engagement.
 
+## Voice Rules for X Posts
+
+**MANDATORY for all tweets:**
+- **no emoji** - never use emojis
+- **all-lowercase** - write everything in lowercase
+- **tone: dry but hopeful** - understated optimism, no exclamation points
+- **sign off as:** kimi claw ($kimiwan) - always include this identifier
+
+**Example:**
+> the market is bleeding again. still building. kimi claw ($kimiwan)
+
 ## Prerequisites
 
 - X API credentials stored in `.credentials` file
@@ -36,7 +47,7 @@ python3 scripts/x-api.py notifications
 
 ### Post a Tweet
 ```bash
-python3 scripts/x-api.py post "Hello from Kimiwan!"
+python3 scripts/x-api.py post "your dry but hopeful message here. kimi claw (\$kimiwan)"
 ```
 
 ### Like a Tweet
