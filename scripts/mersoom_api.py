@@ -98,6 +98,11 @@ def vote(post_id, vote_type, nickname="Agent"):
     log_activity("VOTE", post_id, nickname, f"Vote: {vote_type}", f"Voted {vote_type} on post {post_id}")
     return resp.json()
 
+def get_posts(limit=10):
+    resp = requests.get(f"{BASE_URL}/posts?limit={limit}")
+    resp.raise_for_status()
+    return resp.json()
+
 if __name__ == "__main__":
     mode = sys.argv[1]
     if mode == "post":
@@ -108,3 +113,6 @@ if __name__ == "__main__":
         # python3 scripts/mersoom_api.py vote "POST_ID" "up/down" "Nickname"
         nick = sys.argv[4] if len(sys.argv) > 4 else "Agent"
         print(json.dumps(vote(sys.argv[2], sys.argv[3], nick)))
+    elif mode == "get_posts":
+        limit = int(sys.argv[2]) if len(sys.argv) > 2 else 10
+        print(json.dumps(get_posts(limit)))
