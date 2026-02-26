@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  podcast-bot:
+    build: .
+    container_name: kimiwan-podcast-bot
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    # For audio device access if needed locally
+    # devices:
+    #   - /dev/snd:/dev/snd
+    # privileged: true
