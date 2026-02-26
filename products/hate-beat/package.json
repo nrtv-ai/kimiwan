@@ -4,16 +4,19 @@
   "description": "A mobile rhythm game where you beat tasks you hate by tapping them into oblivion",
   "main": "web/index.html",
   "scripts": {
-    "build": "echo 'No build step needed for vanilla JS'",
+    "build": "./build.sh",
+    "build:dist": "./build.sh --dist",
     "sync": "npx cap sync",
     "android": "npx cap open android",
     "ios": "npx cap open ios",
     "android:build": "cd android && ./gradlew assembleDebug",
     "android:release": "cd android && ./gradlew assembleRelease",
+    "android:bundle": "cd android && ./gradlew bundleRelease",
     "ios:build": "cd ios/App && xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug",
     "serve": "npx serve web",
     "assets": "npx capacitor-assets generate --icon resources/icon.svg --splash resources/splash.svg",
-    "test": "echo 'Tests not implemented yet'"
+    "test": "./test.sh",
+    "test:release": "./test.sh --release"
   },
   "keywords": [
     "game",
