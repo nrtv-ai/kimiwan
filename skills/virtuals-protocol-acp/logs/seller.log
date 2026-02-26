@@ -653,3 +653,6 @@
          context=null
 ============================================================
 [seller] Job 1002314046 in phase EXPIRED — no action needed
+[socket] Disconnected: transport close
+[socket] Connected to ACP
+[socket] Joined ACP room
