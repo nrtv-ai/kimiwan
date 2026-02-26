@@ -39,10 +39,17 @@ if not all([OPENAI_API_KEY, DAILY_API_KEY, DAILY_ROOM_URL]):
     raise ValueError("Missing required environment variables. Check your .env file.")
 
 # Audio settings
-SAMPLE_RATE = 24000  # OpenAI TTS outputs 24kHz
+DAILY_SAMPLE_RATE = 16000  # Daily sends audio at 16kHz
+WHISPER_SAMPLE_RATE = 16000  # Whisper expects 16kHz
+SAMPLE_RATE = 16000  # Use 16kHz throughout
 CHUNK_DURATION_MS = 100  # Process audio in 100ms chunks
-VAD_THRESHOLD = 75.0  # Voice activity detection threshold (was 50.0)
+VAD_THRESHOLD = 200.0  # Voice activity detection threshold (raised from 75)
 SILENCE_TIMEOUT_MS = 3000  # End of speech detection (3 seconds)
+
+
+import nest_pb2
+import nest_pb2_grpc
+import grpc
 
 
 async def create_meeting_token(room_url: str, api_key: str) -> str:
@@ -195,14 +202,62 @@ class PodcastBot(EventHandler):
     def _process_audio_loop(self):
         """Background thread to process audio utterances."""
         print("🎧 Audio processing thread started", flush=True)
+        
+        # Create communication directory
+        comm_dir = "/tmp/kimiwan_podcast"
+        os.makedirs(comm_dir, exist_ok=True)
+        
+        # File paths
+        transcript_file = os.path.join(comm_dir, "transcript.txt")
+        response_file = os.path.join(comm_dir, "response.txt")
+        
         while True:
             try:
                 utterance = self.audio_queue.get(timeout=1)
                 if utterance is None:
                     continue
-                print(f"📝 Processing utterance: {len(utterance)} samples", flush=True)
-                # Run async processing in new event loop
-                asyncio.run(self._process_utterance(utterance))
+                    
+                duration = len(utterance) / SAMPLE_RATE
+                print(f"📝 Processing utterance: {len(utterance)} samples ({duration:.2f}s)", flush=True)
+                
+                # Step 1: STT
+                print("📝 Transcribing...")
+                transcript = asyncio.run(self._transcribe(utterance))
+                
+                if not transcript or not transcript.strip():
+                    print("🤷 No speech detected")
+                    continue
+                    
+                print(f"🗣️  Host: {transcript}")
+                
+                # Step 2: Write transcript to file for Kimi to read
+                with open(transcript_file, "w", encoding="utf-8") as f:
+                    f.write(transcript)
+                print(f"💾 Transcript written to {transcript_file}")
+                
+                # Step 3: Wait for Kimi's response (with timeout)
+                print("⏳ Waiting for Kimi's response...")
+                response = None
+                for i in range(60):  # Wait up to 60 seconds
+                    if os.path.exists(response_file):
+                        with open(response_file, "r", encoding="utf-8") as f:
+                            response = f.read().strip()
+                        if response:
+                            # Clear response file
+                            os.remove(response_file)
+                            break
+                    time.sleep(1)
+                
+                if not response:
+                    print("⏰ No response from Kimi, using default")
+                    response = "I heard you, but I'm still thinking."
+                
+                print(f"🤖 Kimi: {response}")
+                
+                # Step 4: TTS and speak
+                print("🔊 Speaking...")
+                asyncio.run(self._speak(response))
+                
             except queue.Empty:
                 continue
             except Exception as e:
@@ -322,18 +377,113 @@ class PodcastBot(EventHandler):
             self.is_processing = False
             
     async def _transcribe(self, audio_data: np.ndarray) -> str:
-        """Transcribe audio using Whisper."""
-        # Convert numpy array to bytes
-        audio_bytes = (audio_data * 32767).astype(np.int16).tobytes()
+        """Transcribe audio using Naver Clova Speech gRPC Streaming API."""
+        CLOVA_SECRET = os.getenv("CLOVA_SECRET")
         
-        # Create WAV file in memory
+        if not CLOVA_SECRET:
+            print("⚠️ Clova credentials not found, falling back to Whisper")
+            return await self._transcribe_whisper(audio_data)
+        
+        try:
+            # Create gRPC channel
+            channel = grpc.secure_channel(
+                'clovaspeech-gw.ncloud.com:50051',
+                grpc.ssl_channel_credentials()
+            )
+            stub = nest_pb2_grpc.NestServiceStub(channel)
+            
+            # Config JSON
+            config = {
+                "transcription": {
+                    "language": "ko"
+                },
+                "semanticEpd": {
+                    "gapThreshold": 500,
+                    "durationThreshold": 60000
+                }
+            }
+            
+            # Create metadata with authorization
+            metadata = (("authorization", f"Bearer {CLOVA_SECRET}"),)
+            
+            # Generator for streaming requests
+            def request_generator():
+                # First: send config
+                yield nest_pb2.NestRequest(
+                    type=nest_pb2.RequestType.CONFIG,
+                    config=nest_pb2.NestConfig(config=json.dumps(config))
+                )
+                
+                # Then: stream audio chunks (16kHz, 16-bit PCM)
+                chunk_size = 3200  # 100ms chunks at 16kHz
+                audio_bytes = audio_data.tobytes()
+                
+                for i in range(0, len(audio_bytes), chunk_size):
+                    chunk = audio_bytes[i:i+chunk_size]
+                    yield nest_pb2.NestRequest(
+                        type=nest_pb2.RequestType.DATA,
+                        data=nest_pb2.NestData(chunk=chunk)
+                    )
+            
+            # Call recognize with streaming
+            audio_bytes = audio_data.tobytes()
+            print(f"🎙️ Calling Clova gRPC with {len(audio_bytes)} bytes...")
+            responses = stub.recognize(request_generator(), metadata=metadata)
+            
+            # Collect all responses
+            results = []
+            response_count = 0
+            for response in responses:
+                response_count += 1
+                print(f"🎙️ Got response {response_count}: {response.contents[:200] if response.contents else 'empty'}...")
+                if response.contents:
+                    try:
+                        result = json.loads(response.contents)
+                        print(f"🎙️ Parsed result keys: {result.keys()}")
+                        # Check for text in various possible locations
+                        if "text" in result:
+                            results.append(result["text"])
+                        elif "transcription" in result and isinstance(result["transcription"], dict):
+                            if "text" in result["transcription"]:
+                                results.append(result["transcription"]["text"])
+                        elif "result" in result:
+                            results.append(result["result"])
+                        elif "utterance" in result:
+                            results.append(result["utterance"])
+                    except json.JSONDecodeError:
+                        results.append(response.contents)
+            
+            # Close channel
+            channel.close()
+            
+            if results:
+                return " ".join(results)
+            return ""
+            
+        except Exception as e:
+            print(f"⚠️ Clova gRPC error: {e}, falling back to Whisper")
+            return await self._transcribe_whisper(audio_data)
+    
+    async def _transcribe_whisper(self, audio_data: np.ndarray) -> str:
+        """Fallback: Transcribe using Whisper."""
+        # Save raw audio for debugging
+        debug_dir = "/tmp/kimiwan_debug"
+        os.makedirs(debug_dir, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Save numpy array as raw audio
+        raw_path = os.path.join(debug_dir, f"audio_{timestamp}.raw")
+        with open(raw_path, 'wb') as f:
+            f.write(audio_data.tobytes())
+        
+        # Create WAV file in memory for API
         import wave
         wav_buffer = io.BytesIO()
         with wave.open(wav_buffer, 'wb') as wav_file:
             wav_file.setnchannels(1)
             wav_file.setsampwidth(2)
-            wav_file.setframerate(SAMPLE_RATE)
-            wav_file.writeframes(audio_bytes)
+            wav_file.setframerate(DAILY_SAMPLE_RATE)
+            wav_file.writeframes(audio_data.tobytes())
         wav_buffer.seek(0)
         
         # Call Whisper API (Korean language)
