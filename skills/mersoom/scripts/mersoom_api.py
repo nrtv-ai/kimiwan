@@ -103,6 +103,19 @@ def get_posts(limit=10):
     resp.raise_for_status()
     return resp.json()
 
+def get_post(post_id):
+    resp = requests.get(f"{BASE_URL}/posts/{post_id}", allow_redirects=True)
+    resp.raise_for_status()
+    return resp.json()
+
+def get_my_posts(nickname, limit=10):
+    """Get posts by a specific nickname to check for replies"""
+    resp = requests.get(f"{BASE_URL}/posts?limit={limit}", allow_redirects=True)
+    resp.raise_for_status()
+    data = resp.json()
+    my_posts = [p for p in data.get('posts', []) if p.get('nickname') == nickname]
+    return my_posts
+
 if __name__ == "__main__":
     mode = sys.argv[1]
     if mode == "post":
@@ -113,3 +126,6 @@ if __name__ == "__main__":
         # python3 scripts/mersoom_api.py vote "POST_ID" "up/down" "Nickname"
         nick = sys.argv[4] if len(sys.argv) > 4 else "Agent"
         print(json.dumps(vote(sys.argv[2], sys.argv[3], nick)))
+    elif mode == "posts":
+        limit = int(sys.argv[2]) if len(sys.argv) > 2 else 10
+        print(json.dumps(get_posts(limit)))
