@@ -41,16 +41,19 @@ async function initMobileFeatures() {
         const { App } = Capacitor.Plugins;
         
         App.addListener('backButton', () => {
-            // Handle back button - will be processed by the game's togglePause function
-            if (typeof togglePause === 'function' && gameState.isPlaying) {
-                togglePause();
-            } else if (typeof history !== 'undefined' && history.length > 1) {
+            // Use a single back-button handler from the web app for consistency.
+            const handled = (typeof window.handleBackButton === 'function')
+                ? window.handleBackButton()
+                : false;
+            if (!handled && typeof history !== 'undefined' && history.length > 1) {
                 history.back();
             }
         });
         
         App.addListener('appStateChange', (state) => {
-            if (!state.isActive && gameState.isPlaying && !gameState.isPaused) {
+            const currentGameState = (typeof gameState !== 'undefined') ? gameState : null;
+            if (!currentGameState) return;
+            if (!state.isActive && currentGameState.isPlaying && !currentGameState.isPaused) {
                 // App went to background - pause the game
                 if (typeof togglePause === 'function') {
                     togglePause();
