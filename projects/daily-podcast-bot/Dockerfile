@@ -13,8 +13,8 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy bot code
-COPY bot.py .
+# Copy bot code and proto files
+COPY bot.py nest_pb2.py nest_pb2_grpc.py ./
 
 # Run as non-root user
 RUN useradd -m -u 1000 botuser && chown -R botuser:botuser /app
