@@ -9,6 +9,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
+    stop_grace_period: 10s
     # For audio device access if needed locally
     # devices:
     #   - /dev/snd:/dev/snd
