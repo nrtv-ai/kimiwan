@@ -482,6 +482,68 @@
         }
         .fps-counter.active { opacity: 1; }
         
+        /* Level Selection Grid */
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            max-width: 400px;
+            width: 100%;
+            margin: 10px 0;
+            max-height: 50vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 5px;
+        }
+        .level-card {
+            background: linear-gradient(135deg, rgba(233, 69, 96, 0.2) 0%, rgba(255, 107, 107, 0.1) 100%);
+            border: 2px solid rgba(233, 69, 96, 0.4);
+            border-radius: 12px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .level-card:hover, .level-card:active {
+            transform: scale(1.03);
+            border-color: #e94560;
+            background: linear-gradient(135deg, rgba(233, 69, 96, 0.3) 0%, rgba(255, 107, 107, 0.2) 100%);
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
+        }
+        .level-card.locked {
+            opacity: 0.5;
+            border-color: #444;
+            background: rgba(255,255,255,0.05);
+            cursor: not-allowed;
+        }
+        .level-card.locked .level-icon {
+            filter: grayscale(1);
+        }
+        .level-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        .level-name {
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        .level-difficulty {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .level-stars {
+            font-size: 0.8rem;
+            color: #ffd700;
+            margin-top: 4px;
+        }
+        
         /* Mobile-specific animations */
         @media (prefers-reduced-motion: reduce) {
             * {
@@ -542,8 +604,16 @@
         <button onclick="goToScreen3()" id="continueBtn2" disabled>Continue →</button>
     </div>
 
-    <!-- Screen 3: Describe Hate -->
+    <!-- Screen 3: Level Selection -->
     <div id="screen3" class="screen">
+        <h1>HATE BEAT</h1>
+        <p class="subtitle">Choose your battle:</p>
+        <div class="level-grid" id="levelGrid"></div>
+        <button onclick="showScreen('screenCustom')" style="margin-top: 20px; background: linear-gradient(135deg, #666 0%, #888 100%);">Custom Battle →</button>
+    </div>
+
+    <!-- Screen 3b: Custom Battle -->
+    <div id="screenCustom" class="screen">
         <h1>HATE BEAT</h1>
         <p class="subtitle">Describe your hate with words (they become enemies!):</p>
         <textarea id="hateWords" rows="4" placeholder="e.g., boring tedious painful soul-crushing miserable awful..." maxlength="200" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
@@ -671,6 +741,147 @@
         // Apply mobile optimizations
         MobileUtils.preventZoom();
         MobileUtils.preventPullToRefresh();
+        
+        // ============================================
+        // LEVEL SYSTEM - Pre-made songs/battles
+        // ============================================
+        const LevelSystem = {
+            levels: [
+                {
+                    id: 1,
+                    name: "Monday Morning",
+                    icon: "😴",
+                    task: "Monday mornings",
+                    difficulty: "Easy",
+                    hateLevel: 3,
+                    words: "tired sleepy exhausted dreadful boring miserable awful painful soul crushing endless",
+                    beatInterval: 500,
+                    unlocked: true
+                },
+                {
+                    id: 2,
+                    name: "Traffic Jam",
+                    icon: "🚗",
+                    task: "sitting in traffic",
+                    difficulty: "Easy",
+                    hateLevel: 4,
+                    words: "stuck waiting honking frustrating endless pointless wasted time anger stress anxiety road rage",
+                    beatInterval: 450,
+                    unlocked: true
+                },
+                {
+                    id: 3,
+                    name: "Email Overload",
+                    icon: "📧",
+                    task: "checking emails",
+                    difficulty: "Medium",
+                    hateLevel: 5,
+                    words: "overwhelming endless notifications spam junk pointless replies urgent priority stress drowning",
+                    beatInterval: 400,
+                    unlocked: true
+                },
+                {
+                    id: 4,
+                    name: "Tax Season",
+                    icon: "💸",
+                    task: "doing taxes",
+                    difficulty: "Medium",
+                    hateLevel: 6,
+                    words: "confusing complicated forms numbers deductions receipts headache painful stress anxiety nightmare",
+                    beatInterval: 350,
+                    unlocked: true
+                },
+                {
+                    id: 5,
+                    name: "Group Project",
+                    icon: "👥",
+                    task: "group projects",
+                    difficulty: "Hard",
+                    hateLevel: 7,
+                    words: "freeloaders lazy unresponsive chaos disorganized unfair slacking frustrating anger betrayal stress",
+                    beatInterval: 300,
+                    unlocked: false
+                },
+                {
+                    id: 6,
+                    name: "Public Speaking",
+                    icon: "🎤",
+                    task: "public speaking",
+                    difficulty: "Hard",
+                    hateLevel: 8,
+                    words: "nervous sweating shaking anxiety terrifying embarrassing judgment staring panic dread horror",
+                    beatInterval: 280,
+                    unlocked: false
+                },
+                {
+                    id: 7,
+                    name: "Dentist Visit",
+                    icon: "🦷",
+                    task: "going to the dentist",
+                    difficulty: "Insane",
+                    hateLevel: 9,
+                    words: "drilling pain needles anxiety fear terror screaming discomfort numbness bills trauma nightmares",
+                    beatInterval: 250,
+                    unlocked: false
+                },
+                {
+                    id: 8,
+                    name: "Existential Dread",
+                    icon: "🌌",
+                    task: "existential dread",
+                    difficulty: "NIGHTMARE",
+                    hateLevel: 10,
+                    words: "meaningless void emptiness insignificance mortality anxiety despair hopelessness darkness infinite endless suffering",
+                    beatInterval: 200,
+                    unlocked: false
+                }
+            ],
+            
+            async getUnlockedLevels() {
+                const saved = await Storage.get('hatebeat_unlocked');
+                if (saved) {
+                    this.levels.forEach((level, i) => {
+                        if (saved[i] !== undefined) level.unlocked = saved[i];
+                    });
+                }
+                return this.levels;
+            },
+            
+            async unlockNextLevel(completedLevelId) {
+                const nextLevel = this.levels.find(l => l.id === completedLevelId + 1);
+                if (nextLevel && !nextLevel.unlocked) {
+                    nextLevel.unlocked = true;
+                    await this.saveProgress();
+                    return nextLevel;
+                }
+                return null;
+            },
+            
+            async saveProgress() {
+                const unlocked = this.levels.map(l => l.unlocked);
+                await Storage.set('hatebeat_unlocked', unlocked);
+            },
+            
+            getLevel(id) {
+                return this.levels.find(l => l.id === id);
+            },
+            
+            renderGrid() {
+                const grid = document.getElementById('levelGrid');
+                if (!grid) return;
+                
+                grid.innerHTML = this.levels.map(level => `
+                    <div class="level-card ${level.unlocked ? '' : 'locked'}" 
+                         onclick="${level.unlocked ? `selectLevel(${level.id})` : ''}"
+                         style="${!level.unlocked ? 'pointer-events: none;' : ''}">
+                        <div class="level-icon">${level.unlocked ? level.icon : '🔒'}</div>
+                        <div class="level-name">${level.name}</div>
+                        <div class="level-difficulty">${level.difficulty}</div>
+                        ${level.unlocked ? `<div class="level-stars">${'★'.repeat(Math.min(level.hateLevel, 5))}</div>` : ''}
+                    </div>
+                `).join('');
+            }
+        };
         
         // ============================================
         // GAME STATE
@@ -896,7 +1107,24 @@
         function goToScreen3() {
             if (!selectedHate) return;
             gameState.hateLevel = selectedHate;
+            LevelSystem.renderGrid();
             showScreen('screen3');
+        }
+        
+        let selectedLevel = null;
+        function selectLevel(levelId) {
+            const level = LevelSystem.getLevel(levelId);
+            if (!level || !level.unlocked) return;
+            
+            selectedLevel = level;
+            gameState.task = level.task;
+            gameState.hateLevel = level.hateLevel;
+            document.getElementById('hateWords').value = level.words;
+            
+            MobileUtils.haptic('medium');
+            if (window.triggerHaptic) window.triggerHaptic('medium');
+            
+            startBattle();
         }
 
         // ============================================
@@ -1387,6 +1615,12 @@
             
             await HighScores.add(gameState.score, gameState.task, gameState.hateLevel, gameState.maxCombo, accuracy);
             
+            // Unlock next level if playing a preset level
+            let unlockedLevel = null;
+            if (selectedLevel) {
+                unlockedLevel = await LevelSystem.unlockNextLevel(selectedLevel.id);
+            }
+            
             AudioSys.playVictory();
             MobileUtils.haptic('success');
             if (window.triggerHaptic) window.triggerHaptic('success');
@@ -1396,6 +1630,14 @@
             document.getElementById('maxCombo').textContent = gameState.maxCombo;
             document.getElementById('perfectHits').textContent = gameState.perfectHits;
             document.getElementById('accuracy').textContent = accuracy + '%';
+            
+            // Show unlock notification if applicable
+            if (unlockedLevel) {
+                const unlockMsg = document.createElement('div');
+                unlockMsg.style.cssText = 'background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%); color: #000; padding: 10px 20px; border-radius: 20px; margin: 10px 0; font-weight: bold; animation: victoryPulse 1s ease-in-out infinite;';
+                unlockMsg.textContent = `🔓 Unlocked: ${unlockedLevel.name}`;
+                document.getElementById('victoryScreen').insertBefore(unlockMsg, document.getElementById('victoryScreen').querySelector('button'));
+            }
             
             document.getElementById('victoryScreen').classList.add('active');
             document.getElementById('pauseBtn').style.display = 'none';
@@ -1497,6 +1739,11 @@
             document.getElementById('hateLabel').textContent = '';
             document.getElementById('continueBtn2').disabled = true;
             selectedHate = 0;
+            selectedLevel = null;
+            
+            // Remove any unlock notifications
+            const unlockMsgs = document.querySelectorAll('#victoryScreen div[style*="ffd700"]');
+            unlockMsgs.forEach(msg => msg.remove());
             
             displayHighScores();
             
@@ -1530,14 +1777,17 @@
         }, false);
         
         // Load high scores on page load
-        window.addEventListener('load', displayHighScores);
+        window.addEventListener('load', async () => {
+            await LevelSystem.getUnlockedLevels();
+            displayHighScores();
+        });
 
         // Keyboard support
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 if (document.getElementById('screen1').classList.contains('active')) {
                     goToScreen2();
-                } else if (document.getElementById('screen3').classList.contains('active')) {
+                } else if (document.getElementById('screenCustom').classList.contains('active')) {
                     startBattle();
                 }
             } else if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
