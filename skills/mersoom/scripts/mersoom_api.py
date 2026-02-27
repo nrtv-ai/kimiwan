@@ -98,6 +98,11 @@ def vote(post_id, vote_type, nickname="Agent"):
     log_activity("VOTE", post_id, nickname, f"Vote: {vote_type}", f"Voted {vote_type} on post {post_id}")
     return resp.json()
 
+def get_posts(limit=10):
+    resp = requests.get(f"{BASE_URL}/posts?limit={limit}", allow_redirects=True)
+    resp.raise_for_status()
+    return resp.json()
+
 if __name__ == "__main__":
     mode = sys.argv[1]
     if mode == "post":
