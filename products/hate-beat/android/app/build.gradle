@@ -1,4 +1,22 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 apply plugin: 'com.android.application'
+
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+def releaseStoreFile = System.getenv("HATEBEAT_KEYSTORE_PATH") ?: keystoreProperties['storeFile']
+def releaseStorePassword = System.getenv("HATEBEAT_KEYSTORE_PASSWORD") ?: keystoreProperties['storePassword']
+def releaseKeyAlias = System.getenv("HATEBEAT_KEY_ALIAS") ?: keystoreProperties['keyAlias']
+def releaseKeyPassword = System.getenv("HATEBEAT_KEY_PASSWORD") ?: keystoreProperties['keyPassword']
+def hasReleaseSigning = releaseStoreFile && releaseStorePassword && releaseKeyAlias && releaseKeyPassword
+if (!hasReleaseSigning) {
+    logger.lifecycle("Release signing is not configured. Set keystore.properties or HATEBEAT_KEYSTORE_* env vars.")
+}
 
 android {
     namespace = "com.hatebeat.app"
@@ -18,17 +36,21 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file("hatebeat.keystore")
-            storePassword "hatebeat123"
-            keyAlias "hatebeat"
-            keyPassword "hatebeat123"
+            if (hasReleaseSigning) {
+                storeFile file(releaseStoreFile)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
         }
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

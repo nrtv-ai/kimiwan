@@ -124,6 +124,10 @@ Output locations:
 - Release APK: `android/app/build/outputs/apk/release/app-release.apk`
 - Release AAB: `android/app/build/outputs/bundle/release/app-release.aab`
 
+Release signing:
+- Copy `android/keystore.properties.example` to `android/keystore.properties` and fill in real values
+- Or set env vars: `HATEBEAT_KEYSTORE_PATH`, `HATEBEAT_KEYSTORE_PASSWORD`, `HATEBEAT_KEY_ALIAS`, `HATEBEAT_KEY_PASSWORD`
+
 ### iOS IPA
 Requires Xcode and Apple Developer account:
 1. Open `ios/App/App.xcworkspace` in Xcode

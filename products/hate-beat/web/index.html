@@ -1062,13 +1062,16 @@
         const ctx = canvas.getContext('2d', { alpha: false }); // Optimize for no transparency
         let animationId;
         let lastTime = 0;
+        let canvasScale = 1;
 
         function resizeCanvas() {
             const dpr = Math.min(window.devicePixelRatio || 1, 2); // Limit DPR for performance
+            canvasScale = dpr;
             canvas.width = window.innerWidth * dpr;
             canvas.height = window.innerHeight * dpr;
             canvas.style.width = window.innerWidth + 'px';
             canvas.style.height = window.innerHeight + 'px';
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.scale(dpr, dpr);
         }
         window.addEventListener('resize', resizeCanvas);
@@ -1341,6 +1344,15 @@
             if (!hateText) return;
             
             gameState.words = parseWords(hateText);
+            if (gameState.words.length === 0) {
+                const input = document.getElementById('hateWords');
+                input.setCustomValidity('Enter at least one word with 3 or more letters.');
+                input.reportValidity();
+                input.setCustomValidity('');
+                MobileUtils.haptic('error');
+                if (window.triggerHaptic) window.triggerHaptic('error');
+                return;
+            }
             gameState.totalWords = gameState.words.length;
             gameState.wordsDestroyed = 0;
             gameState.score = 0;
@@ -1437,7 +1449,7 @@
             
             // Clear canvas with trail effect
             ctx.fillStyle = 'rgba(26, 26, 46, 0.25)';
-            ctx.fillRect(0, 0, canvas.width / (window.devicePixelRatio || 1), canvas.height / (window.devicePixelRatio || 1));
+            ctx.fillRect(0, 0, canvas.width / canvasScale, canvas.height / canvasScale);
             
             // Update and draw enemies
             gameState.enemies.forEach(enemy => {
@@ -1472,8 +1484,8 @@
             if (!gameState.isPlaying || gameState.isPaused) return;
             
             const rect = canvas.getBoundingClientRect();
-            const x = (clientX - rect.left) * (canvas.width / rect.width / (window.devicePixelRatio || 1));
-            const y = (clientY - rect.top) * (canvas.height / rect.height / (window.devicePixelRatio || 1));
+            const x = (clientX - rect.left) * (canvas.width / rect.width) / canvasScale;
+            const y = (clientY - rect.top) * (canvas.height / rect.height) / canvasScale;
             
             let hit = false;
             for (let i = gameState.enemies.length - 1; i >= 0; i--) {
@@ -1667,6 +1679,19 @@
             if (window.triggerHaptic) window.triggerHaptic('light');
         }
 
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, (char) => {
+                const entities = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                };
+                return entities[char];
+            });
+        }
+
         async function displayHighScores() {
             const scores = await HighScores.get();
             const badge = document.getElementById('highScoreBadge');
@@ -1682,13 +1707,16 @@
             document.getElementById('highScoreValue').textContent = scores[0].score;
             
             list.style.display = 'block';
-            list.innerHTML = scores.slice(0, 5).map((s, i) => `
-                <div class="high-score-item">
-                    <span class="high-score-rank">#${i + 1}</span>
-                    <span class="high-score-task" title="${s.task}">${s.task}</span>
-                    <span class="high-score-points">${s.score}</span>
-                </div>
-            `).join('');
+            list.innerHTML = scores.slice(0, 5).map((s, i) => {
+                const safeTask = escapeHtml(s.task || '');
+                return `
+                    <div class="high-score-item">
+                        <span class="high-score-rank">#${i + 1}</span>
+                        <span class="high-score-task" title="${safeTask}">${safeTask}</span>
+                        <span class="high-score-points">${s.score}</span>
+                    </div>
+                `;
+            }).join('');
         }
 
         function resetGame() {
@@ -1748,7 +1776,7 @@
             displayHighScores();
             
             ctx.fillStyle = '#1a1a2e';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillRect(0, 0, canvas.width / canvasScale, canvas.height / canvasScale);
             showScreen('screen1');
         }
 
@@ -1767,12 +1795,39 @@
         
         // Handle visibility change
         MobileUtils.handleVisibility(gameState, togglePause);
+
+        let lastBackPressTime = 0;
+        function handleBackButton() {
+            const now = Date.now();
+            if (now - lastBackPressTime < 250) return true;
+            lastBackPressTime = now;
+
+            if (gameState.isPlaying) {
+                togglePause();
+                return true;
+            }
+
+            if (document.getElementById('screenCustom').classList.contains('active')) {
+                showScreen('screen3');
+                return true;
+            }
+            if (document.getElementById('screen3').classList.contains('active')) {
+                showScreen('screen2');
+                return true;
+            }
+            if (document.getElementById('screen2').classList.contains('active')) {
+                showScreen('screen1');
+                return true;
+            }
+
+            return false;
+        }
+        window.handleBackButton = handleBackButton;
         
         // Handle back button on Android
         document.addEventListener('backbutton', (e) => {
-            if (gameState.isPlaying) {
+            if (handleBackButton()) {
                 e.preventDefault();
-                togglePause();
             }
         }, false);
         

@@ -9,8 +9,8 @@
    - One-time $25 registration fee
 
 2. **Signing Keystore**
-   - A keystore is already configured in `android/app/hatebeat.keystore`
-   - Password: `hatebeat123` (change for production!)
+   - Configure `android/keystore.properties` (see `android/keystore.properties.example`)
+   - Or set `HATEBEAT_KEYSTORE_PATH`, `HATEBEAT_KEYSTORE_PASSWORD`, `HATEBEAT_KEY_ALIAS`, `HATEBEAT_KEY_PASSWORD`
 
 3. **Build Tools**
    - Android Studio or command line tools
