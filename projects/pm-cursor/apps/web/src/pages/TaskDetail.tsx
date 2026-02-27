@@ -804,7 +804,6 @@ interface AttachmentItemProps {
 
 function AttachmentItem({ attachment, onDelete }: AttachmentItemProps) {
   const Icon = getFileIcon(attachment.mimeType);
-  const isImage = attachment.mimeType.startsWith('image/');
   
   return (
     <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 group">

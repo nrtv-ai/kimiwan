@@ -63,7 +63,7 @@ const broadcastAttachmentEvent = (event: string, attachment: Record<string, any>
 // GET /api/v1/tasks/:taskId/attachments - List all attachments for a task
 router.get('/', async (req, res, next) => {
   try {
-    const { taskId } = req.params;
+    const { taskId } = req.params as { taskId: string };
     
     // Get attachments with user info using a join
     const result = await db
@@ -95,7 +95,7 @@ router.get('/', async (req, res, next) => {
 // POST /api/v1/tasks/:taskId/attachments - Upload a new attachment
 router.post('/', upload.single('file'), async (req, res, next) => {
   try {
-    const { taskId } = req.params;
+    const { taskId } = req.params as { taskId: string };
     const file = req.file;
     
     if (!file) {
@@ -143,7 +143,7 @@ router.post('/', upload.single('file'), async (req, res, next) => {
 // GET /api/v1/tasks/:taskId/attachments/:id - Get a specific attachment
 router.get('/:id', async (req, res, next) => {
   try {
-    const { taskId, id } = req.params;
+    const { taskId, id } = req.params as { taskId: string; id: string };
     
     const result = await db
       .select({
@@ -172,7 +172,7 @@ router.get('/:id', async (req, res, next) => {
 // DELETE /api/v1/tasks/:taskId/attachments/:id - Delete an attachment
 router.delete('/:id', async (req, res, next) => {
   try {
-    const { taskId, id } = req.params;
+    const { taskId, id } = req.params as { taskId: string; id: string };
     const userId = req.user?.id;
     
     // Get attachment to check ownership

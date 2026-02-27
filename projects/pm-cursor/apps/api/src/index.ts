@@ -15,6 +15,8 @@ import { activityRoutes } from './routes/activities.js';
 import { authRoutes } from './routes/auth.js';
 import { commentRoutes } from './routes/comments.js';
 import { attachmentRoutes } from './routes/attachments.js';
+import { teamRoutes } from './routes/teams.js';
+import { approvalRoutes } from './routes/approvals.js';
 import { authenticate } from './lib/auth.js';
 import path from 'path';
 import fs from 'fs';
@@ -60,6 +62,8 @@ app.use('/api/v1/tasks', authenticate, taskRoutes);
 app.use('/api/v1/agents', authenticate, agentRoutes);
 app.use('/api/v1/users', authenticate, userRoutes);
 app.use('/api/v1/activities', authenticate, activityRoutes);
+app.use('/api/v1/teams', authenticate, teamRoutes);
+app.use('/api/v1/approvals', authenticate, approvalRoutes);
 app.use('/api/v1/tasks/:taskId/comments', authenticate, commentRoutes);
 app.use('/api/v1/tasks/:taskId/attachments', authenticate, attachmentRoutes);
 
@@ -72,6 +76,10 @@ io.on('connection', (socket) => {
   
   socket.on('join-project', (projectId: string) => {
     socket.join(`project:${projectId}`);
+  });
+
+  socket.on('leave-project', (projectId: string) => {
+    socket.leave(`project:${projectId}`);
   });
   
   socket.on('disconnect', () => {

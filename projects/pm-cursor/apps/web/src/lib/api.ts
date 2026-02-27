@@ -1,5 +1,18 @@
 import axios from 'axios'
 
+const TOKENS_KEY = 'pm_cursor_tokens'
+
+function getAccessToken(): string | null {
+  try {
+    const rawTokens = localStorage.getItem(TOKENS_KEY)
+    if (!rawTokens) return localStorage.getItem('token')
+    const parsed = JSON.parse(rawTokens)
+    return parsed?.accessToken || null
+  } catch {
+    return localStorage.getItem('token')
+  }
+}
+
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1',
   headers: {
@@ -10,7 +23,7 @@ export const api = axios.create({
 // Add request interceptor for auth tokens
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
+    const token = getAccessToken()
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -19,14 +32,8 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// Add response interceptor for error handling
+// Keep response interceptor minimal; auth refresh logic lives in useAuth.
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      window.location.href = '/login'
-    }
-    return Promise.reject(error)
-  }
+  (error) => Promise.reject(error)
 )

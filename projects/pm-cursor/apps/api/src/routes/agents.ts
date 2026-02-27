@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
-import { db, agents, NewAgent } from '../db/index.js';
+import { db, agents, agentActions, activities, NewAgent } from '../db/index.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { executeAgentAction } from '../services/aiService.js';
 
@@ -141,6 +141,7 @@ router.delete('/:id', async (req, res, next) => {
 
 // POST /api/v1/agents/:id/execute - Execute an agent action
 router.post('/:id/execute', async (req, res, next) => {
+  let pendingActionId: string | null = null;
   try {
     const { action, context } = req.body;
     
@@ -151,13 +152,63 @@ router.post('/:id/execute', async (req, res, next) => {
     if (!agent) {
       throw new AppError(404, 'Agent not found', 'NOT_FOUND');
     }
+
+    const projectId = context?.projectId || agent.projectId;
+    if (!projectId) {
+      throw new AppError(400, 'projectId is required in context or agent', 'BAD_REQUEST');
+    }
+
+    const [pendingAction] = await db
+      .insert(agentActions)
+      .values({
+        projectId,
+        agentId: agent.id,
+        actionType: action,
+        status: 'running',
+        context: context || {},
+      })
+      .returning();
+    pendingActionId = pendingAction.id;
+
+    const executionContext = {
+      ...(context || {}),
+      projectId,
+      agentActionId: pendingAction.id,
+    };
     
     // Execute the agent action using the AI service
-    const result = await executeAgentAction(agent.id, action, context);
+    const result = await executeAgentAction(agent.id, action, executionContext);
+
+    const [finalizedAction] = await db
+      .update(agentActions)
+      .set({
+        status: 'applied_pending_approval',
+        result,
+        rollbackData: {
+          taskIds: result.metadata?.taskIds || [],
+        },
+        updatedAt: new Date(),
+      })
+      .where(eq(agentActions.id, pendingAction.id))
+      .returning();
+
+    await db.insert(activities).values({
+      actorId: agent.id,
+      actorType: 'agent',
+      action: 'agent_action.applied_pending_approval',
+      entityType: 'agent_action',
+      entityId: finalizedAction.id,
+      projectId,
+      metadata: {
+        actionType: action,
+      },
+    });
     
     res.json({ 
       data: {
         agentId: agent.id,
+        approvalItemId: finalizedAction.id,
+        approvalStatus: finalizedAction.status,
         action: result.action,
         success: result.success,
         result: result.result,
@@ -167,6 +218,19 @@ router.post('/:id/execute', async (req, res, next) => {
       }
     });
   } catch (error) {
+    if (pendingActionId) {
+      await db
+        .update(agentActions)
+        .set({
+          status: 'failed',
+          result: {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
+          updatedAt: new Date(),
+        })
+        .where(eq(agentActions.id, pendingActionId));
+    }
     next(error);
   }
 });

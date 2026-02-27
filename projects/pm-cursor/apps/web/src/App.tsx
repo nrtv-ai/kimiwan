@@ -10,6 +10,7 @@ import { ProjectDetail } from './pages/ProjectDetail'
 import { Tasks } from './pages/Tasks'
 import { TaskDetail } from './pages/TaskDetail'
 import { Agents } from './pages/Agents'
+import { Approvals } from './pages/Approvals'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -122,6 +123,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <Agents />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/approvals"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Approvals />
             </Layout>
           </ProtectedRoute>
         }

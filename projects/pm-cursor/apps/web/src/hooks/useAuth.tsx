@@ -7,6 +7,13 @@ interface User {
   name: string;
   role: string;
   avatarUrl: string | null;
+  defaultTeamId?: string | null;
+  teams?: Array<{
+    teamId: string;
+    role: string;
+    name: string;
+    slug: string;
+  }>;
 }
 
 interface AuthTokens {
@@ -73,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { user: userData, tokens } = response.data.data;
       saveAuthData(userData, tokens);
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Login failed';
+      const message = error.response?.data?.error?.message || 'Login failed';
       throw new Error(message);
     }
   };
@@ -84,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { user: userData, tokens } = response.data.data;
       saveAuthData(userData, tokens);
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Registration failed';
+      const message = error.response?.data?.error?.message || 'Registration failed';
       throw new Error(message);
     }
   };

@@ -2,7 +2,10 @@ import { useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './useAuth';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
+const SOCKET_URL =
+  import.meta.env.VITE_SOCKET_URL ||
+  API_URL.replace(/\/api\/v\d+\/?$/, '');
 
 interface TaskEvent {
   id: string;

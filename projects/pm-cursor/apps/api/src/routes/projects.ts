@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
-import { db, projects, NewProject } from '../db/index.js';
+import { db, projects, teams, NewProject } from '../db/index.js';
 import { AppError } from '../middleware/errorHandler.js';
 
 const router = Router();
@@ -18,12 +18,23 @@ const createProjectSchema = z.object({
 // GET /api/v1/projects
 router.get('/', async (_req, res, next) => {
   try {
-    const allProjects = await db.query.projects.findMany({
-      with: {
-        team: true,
-      },
-      orderBy: (projects, { desc }) => [desc(projects.createdAt)],
-    });
+    const result = await db
+      .select({
+        project: projects,
+        team: {
+          id: teams.id,
+          name: teams.name,
+          slug: teams.slug,
+        },
+      })
+      .from(projects)
+      .leftJoin(teams, eq(projects.teamId, teams.id))
+      .orderBy(projects.createdAt);
+
+    const allProjects = result.map((row) => ({
+      ...row.project,
+      team: row.team,
+    }));
     
     res.json({ data: allProjects });
   } catch (error) {
@@ -34,12 +45,26 @@ router.get('/', async (_req, res, next) => {
 // GET /api/v1/projects/:id
 router.get('/:id', async (req, res, next) => {
   try {
-    const project = await db.query.projects.findFirst({
-      where: (projects, { eq }) => eq(projects.id, req.params.id),
-      with: {
-        team: true,
-      },
-    });
+    const result = await db
+      .select({
+        project: projects,
+        team: {
+          id: teams.id,
+          name: teams.name,
+          slug: teams.slug,
+        },
+      })
+      .from(projects)
+      .leftJoin(teams, eq(projects.teamId, teams.id))
+      .where(eq(projects.id, req.params.id))
+      .limit(1);
+
+    const project = result[0]
+      ? {
+          ...result[0].project,
+          team: result[0].team,
+        }
+      : null;
     
     if (!project) {
       throw new AppError(404, 'Project not found', 'NOT_FOUND');
