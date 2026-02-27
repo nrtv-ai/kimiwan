@@ -43,13 +43,18 @@ DAILY_SAMPLE_RATE = 16000  # Daily sends audio at 16kHz
 WHISPER_SAMPLE_RATE = 16000  # Whisper expects 16kHz
 SAMPLE_RATE = 16000  # Use 16kHz throughout
 CHUNK_DURATION_MS = 100  # Process audio in 100ms chunks
-VAD_THRESHOLD = 200.0  # Voice activity detection threshold (raised from 75)
+VAD_THRESHOLD = 80.0  # Voice activity detection threshold (int16 RMS; typical speech: 30-300)
 SILENCE_TIMEOUT_MS = 3000  # End of speech detection (3 seconds)
 
 
-import nest_pb2
-import nest_pb2_grpc
-import grpc
+try:
+    import nest_pb2
+    import nest_pb2_grpc
+    import grpc
+    CLOVA_AVAILABLE = True
+except ImportError:
+    CLOVA_AVAILABLE = False
+    print("⚠️ grpcio/protobuf not installed — Clova STT unavailable, using Whisper fallback")
 
 
 async def create_meeting_token(room_url: str, api_key: str) -> str:
@@ -161,13 +166,16 @@ class AudioBuffer:
                 print(f"📊 RMS: {rms:.4f}, Speaking: {self.is_speaking}", flush=True)
             
             if rms > VAD_THRESHOLD:
-                # Speech detected - update last_audio_time
+                # Speech detected - update last_audio_time to extend silence timer
                 self.last_audio_time = time.time()
-                print(f"🎤 VAD triggered: RMS={rms:.2f} > {VAD_THRESHOLD}", flush=True)
-                
+
                 if not self.is_speaking:
-                    print("🎤 Speech started", flush=True)
+                    print(f"🎤 Speech started (RMS={rms:.2f})", flush=True)
                     self.is_speaking = True
+
+            # Buffer ALL audio while speaking (not just loud chunks)
+            # This preserves soft consonants, micro-pauses, and natural speech flow
+            if self.is_speaking:
                 self.buffer.append(audio_data)
 
 
@@ -202,66 +210,45 @@ class PodcastBot(EventHandler):
     def _process_audio_loop(self):
         """Background thread to process audio utterances."""
         print("🎧 Audio processing thread started", flush=True)
-        
-        # Create communication directory
-        comm_dir = "/tmp/kimiwan_podcast"
-        os.makedirs(comm_dir, exist_ok=True)
-        
-        # File paths
-        transcript_file = os.path.join(comm_dir, "transcript.txt")
-        response_file = os.path.join(comm_dir, "response.txt")
-        
+
+        # Create a persistent event loop for this thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
         while True:
             try:
                 utterance = self.audio_queue.get(timeout=1)
                 if utterance is None:
                     continue
-                    
+
                 duration = len(utterance) / SAMPLE_RATE
                 print(f"📝 Processing utterance: {len(utterance)} samples ({duration:.2f}s)", flush=True)
-                
+
                 # Step 1: STT
                 print("📝 Transcribing...")
-                transcript = asyncio.run(self._transcribe(utterance))
-                
+                transcript = loop.run_until_complete(self._transcribe(utterance))
+
                 if not transcript or not transcript.strip():
                     print("🤷 No speech detected")
                     continue
-                    
+
                 print(f"🗣️  Host: {transcript}")
-                
-                # Step 2: Write transcript to file for Kimi to read
-                with open(transcript_file, "w", encoding="utf-8") as f:
-                    f.write(transcript)
-                print(f"💾 Transcript written to {transcript_file}")
-                
-                # Step 3: Wait for Kimi's response (with timeout)
-                print("⏳ Waiting for Kimi's response...")
-                response = None
-                for i in range(60):  # Wait up to 60 seconds
-                    if os.path.exists(response_file):
-                        with open(response_file, "r", encoding="utf-8") as f:
-                            response = f.read().strip()
-                        if response:
-                            # Clear response file
-                            os.remove(response_file)
-                            break
-                    time.sleep(1)
-                
-                if not response:
-                    print("⏰ No response from Kimi, using default")
-                    response = "I heard you, but I'm still thinking."
-                
-                print(f"🤖 Kimi: {response}")
-                
-                # Step 4: TTS and speak
+
+                # Step 2: Generate response (GPT)
+                print("🧠 Thinking...")
+                response = loop.run_until_complete(self._generate_response(transcript))
+                print(f"🤖 {self.config.name}: {response}")
+
+                # Step 3: TTS and speak
                 print("🔊 Speaking...")
-                asyncio.run(self._speak(response))
-                
+                loop.run_until_complete(self._speak(response))
+
             except queue.Empty:
                 continue
             except Exception as e:
                 print(f"⚠️ Processing thread error: {e}", flush=True)
+                import traceback
+                traceback.print_exc()
         
     async def run(self):
         """Main entry point."""
@@ -379,9 +366,9 @@ class PodcastBot(EventHandler):
     async def _transcribe(self, audio_data: np.ndarray) -> str:
         """Transcribe audio using Naver Clova Speech gRPC Streaming API."""
         CLOVA_SECRET = os.getenv("CLOVA_SECRET")
-        
-        if not CLOVA_SECRET:
-            print("⚠️ Clova credentials not found, falling back to Whisper")
+
+        if not CLOVA_SECRET or not CLOVA_AVAILABLE:
+            print("⚠️ Clova unavailable, using Whisper STT")
             return await self._transcribe_whisper(audio_data)
         
         try:
