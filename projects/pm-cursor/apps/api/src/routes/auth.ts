@@ -1,12 +1,10 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { db, users, NewUser } from '../db/index.js';
-import { eq } from 'drizzle-orm';
+import { db, users, teams, teamMembers, NewUser } from '../db/index.js';
+import { eq, asc } from 'drizzle-orm';
 import { AppError } from '../middleware/errorHandler.js';
 import { 
   authenticate, 
-  registerUser, 
-  loginUser, 
   hashPassword,
   generateTokens,
   comparePassword
@@ -25,6 +23,64 @@ const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(1, 'Password is required'),
 });
+
+function slugifyWorkspace(name: string): string {
+  const base = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+  return base || 'workspace';
+}
+
+async function buildUniqueWorkspaceSlug(name: string): Promise<string> {
+  const base = slugifyWorkspace(name);
+  let candidate = base;
+  let suffix = 1;
+
+  while (true) {
+    const existing = await db.query.teams.findFirst({
+      where: eq(teams.slug, candidate),
+    });
+    if (!existing) return candidate;
+    candidate = `${base}-${suffix}`;
+    suffix += 1;
+  }
+}
+
+async function ensureDefaultWorkspace(userId: string, userName: string): Promise<string> {
+  const existingMembership = await db
+    .select({ teamId: teamMembers.teamId })
+    .from(teamMembers)
+    .where(eq(teamMembers.userId, userId))
+    .orderBy(asc(teamMembers.joinedAt))
+    .limit(1);
+
+  if (existingMembership.length > 0) {
+    return existingMembership[0].teamId;
+  }
+
+  const workspaceName = `${userName}'s Workspace`;
+  const slug = await buildUniqueWorkspaceSlug(workspaceName);
+
+  const [team] = await db
+    .insert(teams)
+    .values({
+      name: workspaceName,
+      slug,
+      description: 'Personal workspace',
+      settings: { singleUserMode: true, aiFirst: true },
+    })
+    .returning();
+
+  await db.insert(teamMembers).values({
+    userId,
+    teamId: team.id,
+    role: 'owner',
+  });
+
+  return team.id;
+}
 
 // POST /api/v1/auth/register - Register a new user
 router.post('/register', async (req, res, next) => {
@@ -51,6 +107,7 @@ router.post('/register', async (req, res, next) => {
     };
 
     const [user] = await db.insert(users).values(newUser).returning();
+    const defaultTeamId = await ensureDefaultWorkspace(user.id, user.name);
 
     // Generate tokens
     const tokens = generateTokens({
@@ -68,6 +125,7 @@ router.post('/register', async (req, res, next) => {
           name: user.name,
           role: user.role,
           avatarUrl: user.avatarUrl,
+          defaultTeamId,
         },
         tokens,
       },
@@ -101,6 +159,7 @@ router.post('/login', async (req, res, next) => {
     if (!isValid) {
       throw new AppError(401, 'Invalid email or password', 'UNAUTHORIZED');
     }
+    const defaultTeamId = await ensureDefaultWorkspace(user.id, user.name);
 
     // Generate tokens
     const tokens = generateTokens({
@@ -118,6 +177,7 @@ router.post('/login', async (req, res, next) => {
           name: user.name,
           role: user.role,
           avatarUrl: user.avatarUrl,
+          defaultTeamId,
         },
         tokens,
       },
@@ -137,6 +197,18 @@ router.get('/me', authenticate, async (req, res, next) => {
     if (!user) {
       throw new AppError(404, 'User not found', 'NOT_FOUND');
     }
+    const defaultTeamId = await ensureDefaultWorkspace(user.id, user.name);
+    const memberships = await db
+      .select({
+        teamId: teamMembers.teamId,
+        role: teamMembers.role,
+        name: teams.name,
+        slug: teams.slug,
+      })
+      .from(teamMembers)
+      .innerJoin(teams, eq(teamMembers.teamId, teams.id))
+      .where(eq(teamMembers.userId, user.id))
+      .orderBy(asc(teamMembers.joinedAt));
 
     res.json({
       data: {
@@ -146,6 +218,8 @@ router.get('/me', authenticate, async (req, res, next) => {
         role: user.role,
         avatarUrl: user.avatarUrl,
         preferences: user.preferences,
+        defaultTeamId,
+        teams: memberships,
         createdAt: user.createdAt,
       },
     });

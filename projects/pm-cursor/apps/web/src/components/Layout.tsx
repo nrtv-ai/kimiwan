@@ -5,10 +5,10 @@ import {
   FolderKanban, 
   CheckSquare, 
   Bot,
+  ClipboardCheck,
   Menu,
   X,
   LogOut,
-  User
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
@@ -22,6 +22,7 @@ const navItems = [
   { path: '/projects', label: 'Projects', icon: FolderKanban },
   { path: '/tasks', label: 'Tasks', icon: CheckSquare },
   { path: '/agents', label: 'Agents', icon: Bot },
+  { path: '/approvals', label: 'Approvals', icon: ClipboardCheck },
 ]
 
 export function Layout({ children }: LayoutProps) {

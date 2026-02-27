@@ -5,6 +5,14 @@ export const taskStatusEnum = pgEnum('task_status', ['backlog', 'todo', 'in_prog
 export const priorityEnum = pgEnum('priority', ['low', 'medium', 'high', 'urgent']);
 export const agentTypeEnum = pgEnum('agent_type', ['planner', 'executor', 'reviewer', 'custom']);
 export const agentStatusEnum = pgEnum('agent_status', ['active', 'paused', 'error']);
+export const agentActionStatusEnum = pgEnum('agent_action_status', [
+  'queued',
+  'running',
+  'applied_pending_approval',
+  'approved',
+  'rolled_back',
+  'failed',
+]);
 
 // Users table
 export const users = pgTable('users', {
@@ -144,6 +152,24 @@ export const activities = pgTable('activities', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Agent actions table (supports approval-after and rollback)
+export const agentActions = pgTable('agent_actions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  projectId: uuid('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  agentId: uuid('agent_id').notNull().references(() => agents.id, { onDelete: 'cascade' }),
+  actionType: varchar('action_type', { length: 100 }).notNull(),
+  status: agentActionStatusEnum('status').notNull().default('queued'),
+  context: jsonb('context').default({}),
+  result: jsonb('result').default({}),
+  rollbackData: jsonb('rollback_data').default({}),
+  approvedBy: uuid('approved_by').references(() => users.id),
+  approvedAt: timestamp('approved_at'),
+  rolledBackBy: uuid('rolled_back_by').references(() => users.id),
+  rolledBackAt: timestamp('rolled_back_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // Export types
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -161,3 +187,5 @@ export type Attachment = typeof attachments.$inferSelect;
 export type NewAttachment = typeof attachments.$inferInsert;
 export type Activity = typeof activities.$inferSelect;
 export type NewActivity = typeof activities.$inferInsert;
+export type AgentAction = typeof agentActions.$inferSelect;
+export type NewAgentAction = typeof agentActions.$inferInsert;

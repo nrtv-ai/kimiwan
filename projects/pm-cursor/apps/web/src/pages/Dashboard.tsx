@@ -4,7 +4,6 @@ import {
   CheckSquare, 
   Bot, 
   TrendingUp,
-  Clock,
   AlertCircle
 } from 'lucide-react'
 import { api } from '../lib/api'
@@ -24,15 +23,8 @@ interface RecentTask {
   projectName: string
 }
 
-interface RecentActivity {
-  id: string
-  action: string
-  entityType: string
-  createdAt: string
-}
-
 export function Dashboard() {
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async (): Promise<Stats> => {
       // TODO: Replace with actual API endpoints when available
@@ -159,7 +151,7 @@ export function Dashboard() {
           </div>
           <div className="p-6 space-y-3">
             <a
-              href="/projects/new"
+              href="/projects"
               className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
             >
               <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -172,7 +164,7 @@ export function Dashboard() {
             </a>
 
             <a
-              href="/tasks/new"
+              href="/tasks"
               className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
             >
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -185,7 +177,7 @@ export function Dashboard() {
             </a>
 
             <a
-              href="/agents/new"
+              href="/agents"
               className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
             >
               <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">

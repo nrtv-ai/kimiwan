@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { api } from '../lib/api'
 import { format } from 'date-fns'
+import { useAuth } from '../hooks/useAuth'
 
 interface Project {
   id: string
@@ -22,6 +23,7 @@ interface Project {
 
 export function Projects() {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
   const [isCreating, setIsCreating] = useState(false)
   const [newProject, setNewProject] = useState({ name: '', description: '' })
 
@@ -35,9 +37,13 @@ export function Projects() {
 
   const createMutation = useMutation({
     mutationFn: async (data: { name: string; description: string }) => {
+      if (!user?.defaultTeamId) {
+        throw new Error('No workspace found for this account')
+      }
+
       const res = await api.post('/projects', {
         ...data,
-        teamId: '00000000-0000-0000-0000-000000000000', // TODO: Get from context
+        teamId: user.defaultTeamId,
       })
       return res.data.data
     },

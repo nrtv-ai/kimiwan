@@ -23,7 +23,7 @@ const broadcastCommentEvent = (event: string, comment: Record<string, any>, proj
 // GET /api/v1/tasks/:taskId/comments - Get all comments for a task
 router.get('/', async (req, res, next) => {
   try {
-    const { taskId } = req.params;
+    const { taskId } = req.params as { taskId: string };
     
     const result = await db
       .select({
@@ -54,7 +54,7 @@ router.get('/', async (req, res, next) => {
 // POST /api/v1/tasks/:taskId/comments - Create a comment
 router.post('/', async (req, res, next) => {
   try {
-    const { taskId } = req.params;
+    const { taskId } = req.params as { taskId: string };
     const data = createCommentSchema.parse(req.body);
     
     // Get authorId from authenticated user
@@ -115,7 +115,7 @@ router.post('/', async (req, res, next) => {
 // PATCH /api/v1/tasks/:taskId/comments/:id - Update a comment
 router.patch('/:id', async (req, res, next) => {
   try {
-    const { taskId, id } = req.params;
+    const { taskId, id } = req.params as { taskId: string; id: string };
     const updateSchema = z.object({
       content: z.string().min(1).max(5000).optional(),
     });
@@ -185,7 +185,7 @@ router.patch('/:id', async (req, res, next) => {
 // DELETE /api/v1/tasks/:taskId/comments/:id - Delete a comment
 router.delete('/:id', async (req, res, next) => {
   try {
-    const { taskId, id } = req.params;
+    const { taskId, id } = req.params as { taskId: string; id: string };
     
     const authorId = req.user?.id;
     if (!authorId) {

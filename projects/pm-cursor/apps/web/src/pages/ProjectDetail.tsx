@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { useState } from 'react'
 import { 
-  FolderKanban, 
   Plus, 
   CheckSquare,
   Bot,
@@ -242,7 +241,7 @@ export function ProjectDetail() {
               </div>
             ) : (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 divide-y divide-gray-200">
-                {tasks.map((task) => (
+                {(tasks ?? []).map((task) => (
                   <div key={task.id} className="p-4 hover:bg-gray-50">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -286,7 +285,7 @@ export function ProjectDetail() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {agents.map((agent) => (
+                {(agents ?? []).map((agent) => (
                   <div key={agent.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">

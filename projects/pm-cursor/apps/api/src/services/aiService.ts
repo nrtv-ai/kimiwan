@@ -10,6 +10,7 @@ export interface AgentExecutionContext {
   projectId: string;
   prompt?: string;
   tasks?: any[];
+  agentActionId?: string;
 }
 
 export interface AgentExecutionResult {
@@ -127,6 +128,7 @@ async function executeTaskBreakdown(
           metadata: {
             source: 'ai_breakdown',
             agentId: agent.id,
+            agentActionId: context.agentActionId || null,
           },
         };
 
