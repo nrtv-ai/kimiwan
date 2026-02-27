@@ -10,6 +10,7 @@ import asyncio
 import json
 import base64
 import io
+import signal
 import httpx
 import queue
 import threading
@@ -191,7 +192,8 @@ class PodcastBot(EventHandler):
         self.conversation_history = []
         self.is_processing = False
         self.is_speaking = False
-        
+        self._shutting_down = False
+
         # Thread-safe queue for audio processing
         self.audio_queue = queue.Queue()
         self.processing_thread = threading.Thread(target=self._process_audio_loop, daemon=True)
@@ -250,31 +252,79 @@ class PodcastBot(EventHandler):
                 import traceback
                 traceback.print_exc()
         
+    async def _has_existing_bot(self) -> bool:
+        """Check if a bot named 'Kimi' is already in the Daily room."""
+        try:
+            room_name = DAILY_ROOM_URL.split("/")[-1]
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    f"https://api.daily.co/v1/rooms/{room_name}/presence",
+                    headers={"Authorization": f"Bearer {DAILY_API_KEY}"}
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    total = data.get("total_count", 0)
+                    if total > 0:
+                        print(f"⚠️ Room has {total} existing participant(s)", flush=True)
+                        return True
+            return False
+        except Exception as e:
+            print(f"⚠️ Could not check room presence: {e}", flush=True)
+            return False
+
+    def _cleanup(self):
+        """Clean up Daily client resources. Safe to call multiple times."""
+        if self._shutting_down:
+            return
+        self._shutting_down = True
+        print("👋 Shutting down...", flush=True)
+        if self.client:
+            try:
+                self.client.leave()
+                self.client.release()
+                print("✅ Left room and released client", flush=True)
+            except Exception as e:
+                print(f"⚠️ Cleanup error: {e}", flush=True)
+
     async def run(self):
         """Main entry point."""
+        # Register signal handlers for graceful shutdown (SIGTERM from Docker, SIGINT from Ctrl+C)
+        loop = asyncio.get_event_loop()
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            loop.add_signal_handler(sig, self._cleanup)
+
         print(f"🚀 Starting {self.config.name}...", flush=True)
         print(f"🔗 Connecting to: {DAILY_ROOM_URL}", flush=True)
-        
+
+        # Brief startup delay to let any zombie participants time out
+        await asyncio.sleep(2)
+
+        # Check for existing bot in room before joining
+        if await self._has_existing_bot():
+            print("⚠️ Bot already in room — waiting for zombie to clear...", flush=True)
+            await asyncio.sleep(10)
+
         # Create Daily client
         print("📱 Creating Daily client...", flush=True)
         self.client = CallClient(self)
         print("✅ Daily client created", flush=True)
-        
+
         # Join the room (public room, no token needed)
         print("📞 Joining room...", flush=True)
         self.client.join(DAILY_ROOM_URL)
         print("⏳ Waiting for connection...", flush=True)
-        
+
         print("✅ Connected! Waiting for conversation...")
         print("💡 Tip: Speak naturally. I'll respond when you pause.")
-        
-        # Keep running
+
+        # Keep running — cleanup guaranteed via finally
         try:
-            while True:
+            while not self._shutting_down:
                 await asyncio.sleep(1)
-        except KeyboardInterrupt:
-            print("\n👋 Shutting down...")
-            self.client.leave()
+        except (KeyboardInterrupt, SystemExit):
+            pass
+        finally:
+            self._cleanup()
             
     def on_joined(self, data, error):
         """Called when successfully joined the room."""
@@ -296,8 +346,14 @@ class PodcastBot(EventHandler):
     def on_participant_joined(self, participant):
         """Called when a participant joins."""
         participant_id = participant.get('id', 'Unknown')
-        print(f"👤 Participant joined: {participant.get('user_name', 'Unknown')} ({participant_id})", flush=True)
-        
+        user_name = participant.get('user_name', 'Unknown')
+        is_local = participant.get('local', False)
+        print(f"👤 Participant joined: {user_name} ({participant_id}) local={is_local}", flush=True)
+
+        # Skip setting up audio renderer for the bot itself
+        if is_local:
+            return
+
         # Set up audio renderer for this participant
         try:
             print(f"🎧 Setting up audio renderer for {participant_id}...", flush=True)
