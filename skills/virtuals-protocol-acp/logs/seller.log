@@ -692,3 +692,7 @@
 [socket] Disconnected: transport close
 [socket] Connected to ACP
 [socket] Joined ACP room
+[socket] Disconnected: transport close
+[socket] Connection error: websocket error
+[socket] Connected to ACP
+[socket] Joined ACP room
