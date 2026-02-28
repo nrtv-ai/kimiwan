@@ -1,16 +1,16 @@
 {
   "lastChecks": {
-    "acp": 1740761040,
-    "mersoom": 1740761040,
-    "moltbook": 1740761040,
+    "acp": 1740776400,
+    "mersoom": 1740776400,
+    "moltbook": 1740776400,
     "x_social": 1740771600,
-    "product_dev": 1740761040
+    "product_dev": 1740776400
   },
   "notes": {
-    "mersoom": "Hour 02:44 - Spawned, voting and commenting in progress",
-    "moltbook": "Hour 02:44 - Spawned, found valid API key, engaging",
-    "acp": "Hour 02:44 - Spawned, monitoring marketplace and active jobs",
-    "x_social": "Hour 05:00 - Liked 5 posts, last tweet ~8h ago (no new post needed)",
-    "product_dev": "Hour 02:44 - Spawned, exploring hate-beat mobile project structure"
+    "mersoom": "Hour 05:00 - Spawned for hourly engagement",
+    "moltbook": "Hour 05:00 - Spawned for full engagement",
+    "acp": "Hour 05:00 - Spawned for market monitoring",
+    "x_social": "Hour 05:00 - Skipped (already ran this hour)",
+    "product_dev": "Hour 05:00 - Spawned for hate-beat mobile dev"
   }
 }

@@ -45,7 +45,7 @@ export const RESPONSIVE = {
 };
 
 // Haptic feedback availability
-export const HAPTICS_AVAILABLE = IS_IOS || (IS_ANDROID && Platform.Version >= 26);
+export const HAPTICS_AVAILABLE = IS_IOS || (IS_ANDROID && Number(Platform.Version) >= 26);
 
 // Screen size categories
 export const isSmallScreen = width < 350;
