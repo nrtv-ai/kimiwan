@@ -9,6 +9,7 @@ interface GameStore extends GameState {
   hitNote: (noteId: string, timing: 'perfect' | 'good') => void;
   missNote: (noteId: string) => void;
   resetGame: () => void;
+  damageNote: (noteId: string, damage: number) => boolean; // Returns true if destroyed
 }
 
 const initialState: GameState = {
@@ -60,6 +61,34 @@ export const useGameStore = create<GameStore>((set, get) => ({
       health: Math.max(0, health - 10),
       notes: get().notes.filter(n => n.id !== noteId),
     });
+  },
+
+  damageNote: (noteId, damage) => {
+    const { score, combo, maxCombo, notes } = get();
+    const noteIndex = notes.findIndex(n => n.id === noteId);
+    
+    if (noteIndex === -1) return false;
+    
+    const note = notes[noteIndex];
+    const newHp = (note.hp || 1) - damage;
+    
+    if (newHp <= 0) {
+      // Note destroyed
+      const newCombo = combo + 1;
+      set({
+        score: score + 100 + Math.floor(newCombo / 10) * 10,
+        combo: newCombo,
+        maxCombo: Math.max(maxCombo, newCombo),
+        notes: notes.filter(n => n.id !== noteId),
+      });
+      return true;
+    } else {
+      // Note damaged but not destroyed
+      const updatedNotes = [...notes];
+      updatedNotes[noteIndex] = { ...note, hp: newHp };
+      set({ notes: updatedNotes });
+      return false;
+    }
   },
 
   resetGame: () => {

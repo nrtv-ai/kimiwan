@@ -23,6 +23,8 @@ export interface Note {
   lane: number;
   type: 'tap' | 'hold';
   duration?: number;
+  text?: string; // Hate comment text
+  hp?: number; // Hit points (how many taps to destroy)
 }
 
 export interface HitResult {

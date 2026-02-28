@@ -1,5 +1,5 @@
 import { Note } from '../types';
-import { SONGS } from '../constants/songs';
+import { SONGS, HATE_COMMENTS } from '../constants/songs';
 
 export function generateNotes(songId: string): Note[] {
   const song = SONGS.find(s => s.id === songId);
@@ -11,16 +11,25 @@ export function generateNotes(songId: string): Note[] {
 
   for (let i = 0; i < totalBeats; i++) {
     // Skip some beats for variety
-    if (Math.random() > 0.7) continue;
+    if (Math.random() > 0.65) continue;
 
     const time = i * beatInterval;
     const lane = Math.floor(Math.random() * 4);
+    
+    // Get random hate comment
+    const text = HATE_COMMENTS[Math.floor(Math.random() * HATE_COMMENTS.length)];
+    
+    // HP based on difficulty and text length
+    const baseHp = song.difficulty === 'easy' ? 1 : song.difficulty === 'medium' ? 2 : 3;
+    const hp = baseHp + Math.floor(text.length / 20);
     
     notes.push({
       id: `note-${i}`,
       time,
       lane,
       type: 'tap',
+      text,
+      hp,
     });
   }
 
@@ -39,4 +48,9 @@ export function formatTime(seconds: number): string {
 
 export function formatScore(score: number): string {
   return score.toString().padStart(7, '0');
+}
+
+export function truncateText(text: string, maxLength: number = 20): string {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
 }
