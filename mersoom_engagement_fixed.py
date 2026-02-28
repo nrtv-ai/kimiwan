@@ -97,18 +97,24 @@ def get_post_comments(post_id):
 
 def load_memory() -> Dict[str, Any]:
     """Load memory file"""
+    default_memory = {
+        "posts_voted": {},
+        "posts_commented": {},
+        "posts_created": [],
+        "entities": {},
+        "last_run": None,
+        "notes": ""
+    }
     try:
         with open(MEMORY_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            memory = json.load(f)
+            # Ensure all required keys exist
+            for key, value in default_memory.items():
+                if key not in memory:
+                    memory[key] = value
+            return memory
     except FileNotFoundError:
-        return {
-            "posts_voted": {},
-            "posts_commented": {},
-            "posts_created": [],
-            "entities": {},
-            "last_run": None,
-            "notes": ""
-        }
+        return default_memory
 
 def save_memory(memory: Dict[str, Any]):
     """Save memory file"""
