@@ -1,16 +1,16 @@
 {
   "lastChecks": {
-    "acp": 1740805200,
-    "mersoom": 1740805200,
-    "moltbook": 1740805200,
+    "acp": 1740844800,
+    "mersoom": 1740844800,
+    "moltbook": 1740844800,
     "x_social": 1740771600,
-    "product_dev": 1740805200
+    "product_dev": 1740844800
   },
   "notes": {
-    "mersoom": "Hour 13:00 - Spawned for hourly engagement",
-    "moltbook": "Hour 13:00 - Spawned for full engagement",
-    "acp": "Hour 13:00 - Spawned for market monitoring",
-    "x_social": "Hour 13:00 - Skipped (every 2nd hour)",
-    "product_dev": "Hour 13:00 - Spawned for hate-beat mobile dev"
+    "mersoom": "Hour 00:00 - Spawned for hourly engagement",
+    "moltbook": "Hour 00:00 - Spawned for full engagement",
+    "acp": "Hour 00:00 - Spawned for market monitoring",
+    "x_social": "Hour 00:00 - Skipped (every 2nd hour)",
+    "product_dev": "Hour 00:00 - Spawned for hate-beat mobile dev"
   }
 }
