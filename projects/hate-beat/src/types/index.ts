@@ -3,6 +3,7 @@ export type RootStackParamList = {
   SongSelect: undefined;
   Game: { songId: string };
   Results: { score: number; maxCombo: number; accuracy: number; songId: string };
+  Profile: undefined;
 };
 
 export interface Song {
@@ -23,8 +24,8 @@ export interface Note {
   lane: number;
   type: 'tap' | 'hold';
   duration?: number;
-  text?: string; // Hate comment text
-  hp?: number; // Hit points (how many taps to destroy)
+  text?: string;
+  hp?: number;
 }
 
 export interface HitResult {

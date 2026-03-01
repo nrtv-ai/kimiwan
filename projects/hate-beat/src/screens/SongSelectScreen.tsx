@@ -10,6 +10,7 @@ import {
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList, Song } from '../types';
 import { SONGS } from '../constants/songs';
+import { useLevelStore } from '../store/levelStore';
 
 type SongSelectScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'SongSelect'>;
@@ -17,7 +18,13 @@ type SongSelectScreenProps = {
 
 const { width } = Dimensions.get('window');
 
-function SongCard({ song, onPress }: { song: Song; onPress: () => void }) {
+interface SongCardProps {
+  song: Song;
+  isUnlocked: boolean;
+  onPress: () => void;
+}
+
+function SongCard({ song, isUnlocked, onPress }: SongCardProps) {
   const difficultyColor = {
     easy: '#4ade80',
     medium: '#fbbf24',
@@ -26,11 +33,19 @@ function SongCard({ song, onPress }: { song: Song; onPress: () => void }) {
 
   return (
     <TouchableOpacity
-      style={[styles.songCard, { borderLeftColor: song.color }]}
+      style={[
+        styles.songCard, 
+        { borderLeftColor: song.color },
+        !isUnlocked && styles.songCardLocked
+      ]}
       onPress={onPress}
+      disabled={!isUnlocked}
+      activeOpacity={isUnlocked ? 0.7 : 1}
     >
       <View style={styles.songInfo}>
-        <Text style={styles.songTitle}>{song.title}</Text>
+        <Text style={[styles.songTitle, !isUnlocked && styles.textLocked]}>
+          {song.title}
+        </Text>
         <Text style={styles.songArtist}>{song.artist}</Text>
         
         <View style={styles.songMeta}>
@@ -42,9 +57,18 @@ function SongCard({ song, onPress }: { song: Song; onPress: () => void }) {
       </View>
 
       <View style={styles.hateContainer}>
-        <Text style={styles.hateLabel}>HATE RATING</Text>
-        <Text style={styles.hateValue}>{song.hateRating.toFixed(1)}</Text>
-        <Text style={styles.hateEmoji}>{getHateEmoji(song.hateRating)}</Text>
+        {!isUnlocked ? (
+          <>
+            <Text style={styles.lockedIcon}>🔒</Text>
+            <Text style={styles.lockedText}>LOCKED</Text>
+          </>
+        ) : (
+          <>
+            <Text style={styles.hateLabel}>HATE RATING</Text>
+            <Text style={styles.hateValue}>{song.hateRating.toFixed(1)}</Text>
+            <Text style={styles.hateEmoji}>{getHateEmoji(song.hateRating)}</Text>
+          </>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -58,6 +82,8 @@ function getHateEmoji(rating: number): string {
 }
 
 export default function SongSelectScreen({ navigation }: SongSelectScreenProps) {
+  const { isSongUnlocked, level } = useLevelStore();
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -67,19 +93,27 @@ export default function SongSelectScreen({ navigation }: SongSelectScreenProps) 
         >
           <Text style={styles.backButtonText}>← BACK</Text>
         </TouchableOpacity>
+        
         <Text style={styles.title}>SELECT SONG</Text>
-        <View style={{ width: 60 }} />
+        
+        <View style={styles.levelBadge}>
+          <Text style={styles.levelText}>Lv.{level}</Text>
+        </View>
       </View>
 
       <FlatList
         data={SONGS}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <SongCard
-            song={item}
-            onPress={() => navigation.navigate('Game', { songId: item.id })}
-          />
-        )}
+        renderItem={({ item }) => {
+          const isUnlocked = isSongUnlocked(item.id);
+          return (
+            <SongCard
+              song={item}
+              isUnlocked={isUnlocked}
+              onPress={() => isUnlocked && navigation.navigate('Game', { songId: item.id })}
+            />
+          );
+        }}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
       />
@@ -116,6 +150,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     letterSpacing: 2,
   },
+  levelBadge: {
+    backgroundColor: '#ff006e',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  levelText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
   list: {
     padding: 15,
     gap: 15,
@@ -132,6 +177,10 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
+  songCardLocked: {
+    opacity: 0.6,
+    backgroundColor: '#1f1f3a',
+  },
   songInfo: {
     flex: 1,
   },
@@ -140,6 +189,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#fff',
     marginBottom: 4,
+  },
+  textLocked: {
+    color: '#666',
   },
   songArtist: {
     fontSize: 14,
@@ -171,6 +223,7 @@ const styles = StyleSheet.create({
     paddingLeft: 15,
     borderLeftWidth: 1,
     borderLeftColor: '#3d3d5c',
+    minWidth: 80,
   },
   hateLabel: {
     fontSize: 10,
@@ -186,5 +239,14 @@ const styles = StyleSheet.create({
   hateEmoji: {
     fontSize: 24,
     marginTop: 4,
+  },
+  lockedIcon: {
+    fontSize: 24,
+    marginBottom: 4,
+  },
+  lockedText: {
+    fontSize: 10,
+    color: '#666',
+    fontWeight: '700',
   },
 });

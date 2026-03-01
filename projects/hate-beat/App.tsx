@@ -8,6 +8,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import SongSelectScreen from './src/screens/SongSelectScreen';
 import GameScreen from './src/screens/GameScreen';
 import ResultsScreen from './src/screens/ResultsScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -38,6 +39,11 @@ export default function App() {
           options={{
             gestureEnabled: false,
           }}
+        />
+        
+        <Stack.Screen 
+          name="Profile" 
+          component={ProfileScreen}
         />
       </Stack.Navigator>
     </NavigationContainer>

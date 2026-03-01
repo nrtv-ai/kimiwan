@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -12,8 +12,12 @@ import { RouteProp } from '@react-navigation/native';
 import { Audio } from 'expo-av';
 import { RootStackParamList, Note } from '../types';
 import { useGameStore } from '../store/gameStore';
+import { useLevelStore, Difficulty } from '../store/levelStore';
 import { generateNotes, formatScore, formatTime } from '../utils/gameHelpers';
+import { useAudioAnalyzer } from '../utils/audioAnalysis';
 import { SONGS, LANES, HIT_WINDOW } from '../constants/songs';
+import AudioVisualizer from '../components/AudioVisualizer';
+import { gameHaptics } from '../utils/haptics';
 
 type GameScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Game'>;
@@ -22,7 +26,7 @@ type GameScreenProps = {
 
 const { width, height } = Dimensions.get('window');
 const LANE_WIDTH = width / LANES;
-const HIT_LINE_Y = height * 0.75;
+const HIT_LINE_Y = height * 0.72;
 const NOTE_SIZE = LANE_WIDTH * 0.7;
 const NOTE_SPEED_PPS = 350;
 
@@ -49,17 +53,38 @@ export default function GameScreen({ navigation, route }: GameScreenProps) {
     resetGame,
   } = useGameStore();
 
-  const [notes, setNotes] = React.useState<NoteWithPosition[]>([]);
-  const [gameTime, setGameTime] = React.useState(0);
-  const [sound, setSound] = React.useState<Audio.Sound | null>(null);
-  const [feedback, setFeedback] = React.useState<{text: string, color: string} | null>(null);
+  const { recordGame, isSongUnlocked } = useLevelStore();
+
+  const [notes, setNotes] = useState<NoteWithPosition[]>([]);
+  const [gameTime, setGameTime] = useState(0);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [feedback, setFeedback] = useState<{text: string, color: string} | null>(null);
+  const [perfectHits, setPerfectHits] = useState(0);
+  const [goodHits, setGoodHits] = useState(0);
+  const [misses, setMisses] = useState(0);
+  const [showVisualizer, setShowVisualizer] = useState(true);
+  
   const gameLoopRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
+
+  // Audio analysis hook
+  const { analysisData } = useAudioAnalyzer(sound, showVisualizer);
+
+  // Check if song is unlocked
+  useEffect(() => {
+    if (!isSongUnlocked(songId)) {
+      navigation.navigate('SongSelect');
+    }
+  }, [songId, isSongUnlocked, navigation]);
 
   // Initialize game
   useEffect(() => {
     const initGame = async () => {
       resetGame();
+      setPerfectHits(0);
+      setGoodHits(0);
+      setMisses(0);
+      
       const generatedNotes = generateNotes(songId);
       const notesWithPosition = generatedNotes.map(note => ({
         ...note,
@@ -82,6 +107,7 @@ export default function GameScreen({ navigation, route }: GameScreenProps) {
       }
       
       startTimeRef.current = Date.now();
+      gameHaptics.gameStart();
     };
     
     initGame();
@@ -109,19 +135,15 @@ export default function GameScreen({ navigation, route }: GameScreenProps) {
           if (noteY > HIT_LINE_Y + 100 && !note.hit) {
             missNote(note.id);
             note.hit = true;
+            setMisses(prev => prev + 1);
             showFeedback('MISS', '#f87171');
+            gameHaptics.miss();
           }
         }
       });
       
       if (elapsed > song.duration + 2) {
-        endGame();
-        navigation.navigate('Results', {
-          score,
-          maxCombo,
-          accuracy: calculateAccuracy(),
-          songId,
-        });
+        endGameAndSave();
       }
     }, 16);
     
@@ -132,8 +154,44 @@ export default function GameScreen({ navigation, route }: GameScreenProps) {
 
   const calculateAccuracy = () => {
     const totalNotes = notes.length;
-    const hitNotes = notes.filter(n => n.hit).length;
+    const hitNotes = perfectHits + goodHits;
     return totalNotes > 0 ? Math.round((hitNotes / totalNotes) * 100) : 0;
+  };
+
+  const getRank = (): 'S' | 'A' | 'B' | 'C' | 'D' | 'F' => {
+    const accuracy = calculateAccuracy();
+    if (accuracy >= 95) return 'S';
+    if (accuracy >= 90) return 'A';
+    if (accuracy >= 80) return 'B';
+    if (accuracy >= 70) return 'C';
+    if (accuracy >= 60) return 'D';
+    return 'F';
+  };
+
+  const endGameAndSave = () => {
+    endGame();
+    
+    // Record game for level progression
+    const gameResult = {
+      songId,
+      score,
+      maxCombo,
+      accuracy: calculateAccuracy(),
+      perfectHits,
+      goodHits,
+      misses,
+      rank: getRank(),
+      difficulty: song.difficulty as Difficulty,
+    };
+    
+    recordGame(gameResult);
+    
+    navigation.navigate('Results', {
+      score,
+      maxCombo,
+      accuracy: calculateAccuracy(),
+      songId,
+    });
   };
 
   const showFeedback = (text: string, color: string) => {
@@ -161,15 +219,21 @@ export default function GameScreen({ navigation, route }: GameScreenProps) {
     if (timeDiff <= HIT_WINDOW.perfect) {
       hitNote(closestNote.id, 'perfect');
       closestNote.hit = true;
+      setPerfectHits(prev => prev + 1);
       showFeedback('PERFECT!', '#4ade80');
+      gameHaptics.perfect();
     } else if (timeDiff <= HIT_WINDOW.good) {
       hitNote(closestNote.id, 'good');
       closestNote.hit = true;
+      setGoodHits(prev => prev + 1);
       showFeedback('GOOD!', '#fbbf24');
+      gameHaptics.good();
     } else {
       missNote(closestNote.id);
       closestNote.hit = true;
+      setMisses(prev => prev + 1);
       showFeedback('MISS', '#f87171');
+      gameHaptics.miss();
     }
   }, [isPlaying, notes]);
 
@@ -209,6 +273,19 @@ export default function GameScreen({ navigation, route }: GameScreenProps) {
       <View style={styles.healthBarContainer}>
         <View style={[styles.healthBar, { width: `${health}%`, backgroundColor: health > 30 ? '#4ade80' : '#f87171' }]} />
       </View>
+
+      {/* Audio Visualizer */}
+      {showVisualizer && (
+        <View style={styles.visualizerContainer}>
+          <AudioVisualizer
+            analysisData={analysisData}
+            width={width}
+            height={40}
+            barCount={20}
+            style="bars"
+          />
+        </View>
+      )}
 
       {/* Game Area */}
       <View style={styles.gameArea}>
@@ -264,6 +341,16 @@ export default function GameScreen({ navigation, route }: GameScreenProps) {
       >
         <Text style={styles.pauseText}>⏸</Text>
       </TouchableOpacity>
+
+      {/* Visualizer Toggle */}
+      <TouchableOpacity
+        style={styles.visualizerToggle}
+        onPress={() => setShowVisualizer(!showVisualizer)}
+      >
+        <Text style={styles.visualizerToggleText}>
+          {showVisualizer ? '📊' : '📈'}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -313,6 +400,10 @@ const styles = StyleSheet.create({
   },
   healthBar: {
     height: '100%',
+  },
+  visualizerContainer: {
+    backgroundColor: '#1a1a2e',
+    paddingVertical: 5,
   },
   gameArea: {
     flex: 1,
@@ -422,5 +513,17 @@ const styles = StyleSheet.create({
   pauseText: {
     fontSize: 24,
     color: '#fff',
+  },
+  visualizerToggle: {
+    position: 'absolute',
+    top: 50,
+    right: 65,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  visualizerToggleText: {
+    fontSize: 20,
   },
 });
