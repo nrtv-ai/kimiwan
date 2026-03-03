@@ -192,6 +192,86 @@
             color: #aaa;
         }
         
+        /* Shake to Vent Indicator */
+        .vent-indicator {
+            position: fixed;
+            top: max(120px, env(safe-area-inset-top) + 105px);
+            left: max(15px, env(safe-area-inset-left));
+            right: max(15px, env(safe-area-inset-right));
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .vent-indicator.active {
+            opacity: 1;
+        }
+        .vent-bar {
+            width: min(150px, 40vw);
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 5px;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+        }
+        .vent-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e94560 0%, #ff6b6b 100%);
+            transition: width 0.2s ease-out;
+            box-shadow: 0 0 8px rgba(233, 69, 96, 0.5);
+        }
+        .vent-text {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .vent-text.vented {
+            color: #e94560;
+            font-weight: bold;
+            animation: ventPulse 0.5s ease-in-out;
+        }
+        @keyframes ventPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        /* Vent overlay effect */
+        .vent-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(233,69,96,0.4) 0%, transparent 70%);
+            z-index: 50;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .vent-overlay.active {
+            opacity: 1;
+        }
+        .vent-overlay-text {
+            font-size: clamp(3rem, 15vw, 6rem);
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 30px #e94560, 0 0 60px #e94560;
+            animation: ventTextPulse 0.5s ease-in-out;
+        }
+        @keyframes ventTextPulse {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
         /* Score display - positioned for safe area */
         .score-display {
             position: fixed;
@@ -630,6 +710,20 @@
             <span id="wordsRemaining">0</span> enemies remaining
         </div>
     </div>
+    
+    <!-- Shake to Vent Indicator -->
+    <div class="vent-indicator" id="ventIndicator">
+        <div class="vent-bar">
+            <div class="vent-fill" id="ventFill" style="width: 0%"></div>
+        </div>
+        <span class="vent-text" id="ventText">📳 Shake to Vent</span>
+    </div>
+    
+    <!-- Vent Overlay Effect -->
+    <div class="vent-overlay" id="ventOverlay">
+        <div class="vent-overlay-text">💥 VENT! 💥</div>
+    </div>
+    
     <div class="score-display" id="scoreDisplay">Score: 0</div>
     <div class="combo-display" id="comboDisplay">Combo: x0</div>
     <div class="beat-indicator" id="beatIndicator"></div>
@@ -1401,6 +1495,98 @@
             if (window.triggerHaptic) {
                 window.triggerHaptic('medium');
             }
+            
+            // Initialize shake detector callbacks
+            initShakeToVent();
+        }
+        
+        // ============================================
+        // SHAKE TO VENT - Game Integration
+        // ============================================
+        function initShakeToVent() {
+            if (!window.ShakeDetector || !window.ShakeDetector.isAvailable) {
+                document.getElementById('ventIndicator').style.display = 'none';
+                return;
+            }
+            
+            // Show vent indicator
+            document.getElementById('ventIndicator').classList.add('active');
+            
+            // Set up shake callback
+            window.ShakeDetector.onShake((shakeCount, ventThreshold) => {
+                const progress = (shakeCount / ventThreshold) * 100;
+                document.getElementById('ventFill').style.width = progress + '%';
+                document.getElementById('ventText').textContent = 
+                    `📳 Shake ${ventThreshold - shakeCount}x to Vent`;
+            });
+            
+            // Set up vent callback
+            window.ShakeDetector.onVent(() => {
+                triggerVent();
+            });
+        }
+        
+        function triggerVent() {
+            if (!gameState.isPlaying || gameState.isPaused) return;
+            
+            // Update UI
+            document.getElementById('ventFill').style.width = '100%';
+            document.getElementById('ventText').textContent = '💥 VENTED!';
+            document.getElementById('ventText').classList.add('vented');
+            
+            // Show vent overlay
+            const ventOverlay = document.getElementById('ventOverlay');
+            ventOverlay.classList.add('active');
+            
+            // Destroy all visible enemies
+            let destroyedCount = 0;
+            const bonusPerEnemy = 500;
+            
+            gameState.enemies.forEach((enemy, index) => {
+                // Create explosion particles
+                createParticles(enemy.x, enemy.y, enemy.hue);
+                destroyedCount++;
+            });
+            
+            // Clear all enemies
+            gameState.enemies = [];
+            gameState.wordsDestroyed += destroyedCount;
+            
+            // Calculate bonus score
+            const bonus = destroyedCount * bonusPerEnemy * (1 + gameState.combo * 0.1);
+            gameState.score += bonus;
+            
+            // Show floating text
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            showFloatingText(centerX, centerY, `VENT! +${Math.floor(bonus)}`, 'perfect');
+            
+            // Play sounds
+            AudioSys.playDestroy();
+            AudioSys.playVictory();
+            
+            // Update UI
+            updateUI();
+            
+            // Hide vent overlay after animation
+            setTimeout(() => {
+                ventOverlay.classList.remove('active');
+                document.getElementById('ventText').classList.remove('vented');
+                
+                // Check for victory since all enemies are destroyed
+                if (gameState.enemies.length === 0) {
+                    victory();
+                }
+            }, 1500);
+            
+            // Reset shake detector
+            setTimeout(() => {
+                if (window.ShakeDetector) {
+                    window.ShakeDetector.reset();
+                }
+                document.getElementById('ventFill').style.width = '0%';
+                document.getElementById('ventText').textContent = '📳 Shake to Vent';
+            }, 2000);
         }
 
         function updateUI() {
@@ -1733,6 +1919,11 @@
             document.getElementById('tutorial').classList.remove('active');
             document.getElementById('comboDisplay').classList.remove('active');
             document.getElementById('pauseBtn').style.display = 'none';
+            document.getElementById('ventIndicator').classList.remove('active');
+            document.getElementById('ventOverlay').classList.remove('active');
+            document.getElementById('ventFill').style.width = '0%';
+            document.getElementById('ventText').textContent = '📳 Shake to Vent';
+            document.getElementById('ventText').classList.remove('vented');
             
             // Reset state
             gameState = {

@@ -61,4 +61,19 @@ export const gameHaptics = {
   },
   gameOver: () => touchFeedback('error'),
   gameStart: () => touchFeedback('success'),
+  shake: () => touchFeedback('heavy'),
+  vent: () => {
+    // Special haptic pattern for venting
+    if (Platform.OS === 'ios') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setTimeout(() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      }, 100);
+      setTimeout(() => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }, 200);
+    } else {
+      touchFeedback('success');
+    }
+  },
 };

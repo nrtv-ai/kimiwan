@@ -153,3 +153,128 @@ const NativeStorage = {
 // Export for use in main game
 window.NativeStorage = NativeStorage;
 window.triggerHaptic = triggerHaptic;
+
+// ============================================
+// SHAKE TO VENT FEATURE
+// ============================================
+
+const ShakeDetector = {
+    isAvailable: false,
+    threshold: 15, // Acceleration threshold for shake detection
+    cooldownMs: 500,
+    lastShakeTime: 0,
+    shakeCount: 0,
+    ventThreshold: 3, // Number of shakes to trigger vent
+    isVented: false,
+    onVentCallback: null,
+    
+    async init() {
+        // Check if DeviceMotion is available
+        if (typeof window.DeviceMotionEvent !== 'undefined') {
+            // Request permission on iOS 13+
+            if (typeof window.DeviceMotionEvent.requestPermission === 'function') {
+                try {
+                    const permission = await window.DeviceMotionEvent.requestPermission();
+                    if (permission === 'granted') {
+                        this.isAvailable = true;
+                    }
+                } catch (e) {
+                    console.log('DeviceMotion permission denied');
+                }
+            } else {
+                this.isAvailable = true;
+            }
+        }
+        
+        if (this.isAvailable) {
+            window.addEventListener('devicemotion', this.handleMotion.bind(this));
+            console.log('Shake detector initialized');
+        }
+        
+        return this.isAvailable;
+    },
+    
+    handleMotion(event) {
+        if (!this.isAvailable || this.isVented) return;
+        
+        const acceleration = event.accelerationIncludingGravity;
+        if (!acceleration) return;
+        
+        // Calculate total acceleration magnitude
+        const magnitude = Math.sqrt(
+            acceleration.x * acceleration.x +
+            acceleration.y * acceleration.y +
+            acceleration.z * acceleration.z
+        );
+        
+        const now = Date.now();
+        const timeSinceLastShake = now - this.lastShakeTime;
+        
+        // Detect shake when magnitude exceeds threshold
+        if (magnitude > this.threshold && timeSinceLastShake > this.cooldownMs) {
+            this.shakeCount++;
+            this.lastShakeTime = now;
+            
+            // Trigger haptic feedback
+            triggerHaptic('heavy');
+            
+            // Update UI if callback exists
+            if (this.onShakeCallback) {
+                this.onShakeCallback(this.shakeCount, this.ventThreshold);
+            }
+            
+            // Check if vent threshold reached
+            if (this.shakeCount >= this.ventThreshold) {
+                this.triggerVent();
+            }
+        }
+    },
+    
+    triggerVent() {
+        this.isVented = true;
+        
+        // Special vent haptic pattern
+        triggerHaptic('success');
+        setTimeout(() => triggerHaptic('heavy'), 100);
+        setTimeout(() => triggerHaptic('success'), 200);
+        
+        // Call the vent callback
+        if (this.onVentCallback) {
+            this.onVentCallback();
+        }
+        
+        // Reset after delay
+        setTimeout(() => {
+            this.reset();
+        }, 2000);
+    },
+    
+    reset() {
+        this.shakeCount = 0;
+        this.isVented = false;
+    },
+    
+    onShake(callback) {
+        this.onShakeCallback = callback;
+    },
+    
+    onVent(callback) {
+        this.onVentCallback = callback;
+    },
+    
+    getProgress() {
+        return Math.min(this.shakeCount / this.ventThreshold, 1);
+    },
+    
+    getShakesNeeded() {
+        return Math.max(0, this.ventThreshold - this.shakeCount);
+    }
+};
+
+// Initialize shake detector when DOM is ready
+document.addEventListener('DOMContentLoaded', async () => {
+    await ShakeDetector.init();
+});
+
+// Export for use in main game
+window.ShakeDetector = ShakeDetector;

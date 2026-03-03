@@ -18,6 +18,7 @@ import { useAudioAnalyzer } from '../utils/audioAnalysis';
 import { SONGS, LANES, HIT_WINDOW } from '../constants/songs';
 import AudioVisualizer from '../components/AudioVisualizer';
 import { gameHaptics } from '../utils/haptics';
+import { useShakeToVent } from '../utils/shake';
 
 type GameScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Game'>;
@@ -63,12 +64,66 @@ export default function GameScreen({ navigation, route }: GameScreenProps) {
   const [goodHits, setGoodHits] = useState(0);
   const [misses, setMisses] = useState(0);
   const [showVisualizer, setShowVisualizer] = useState(true);
+  const [showVentOverlay, setShowVentOverlay] = useState(false);
   
   const gameLoopRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
+  const ventAnimationRef = useRef<Animated.Value>(new Animated.Value(0));
 
   // Audio analysis hook
   const { analysisData } = useAudioAnalyzer(sound, showVisualizer);
+
+  // Shake to Vent handler
+  const handleVent = useCallback(() => {
+    // Venting destroys all visible notes and gives bonus points
+    setShowVentOverlay(true);
+    
+    // Destroy all visible notes
+    let destroyedCount = 0;
+    notes.forEach(note => {
+      if (!note.hit) {
+        const elapsed = (Date.now() - startTimeRef.current) / 1000;
+        const noteY = NOTE_SPEED_PPS * (elapsed - note.time) + 50;
+        // Only destroy notes that are on screen
+        if (noteY > -NOTE_SIZE && noteY < height) {
+          note.hit = true;
+          destroyedCount++;
+          hitNote(note.id, 'perfect');
+        }
+      }
+    });
+    
+    // Bonus points for venting
+    if (destroyedCount > 0) {
+      const bonus = destroyedCount * 100 * combo;
+      useGameStore.setState(state => ({ score: state.score + bonus }));
+      showFeedback(`VENT! +${bonus}`, '#ff006e');
+    }
+    
+    // Animate vent overlay
+    Animated.sequence([
+      Animated.timing(ventAnimationRef.current, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(ventAnimationRef.current, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setShowVentOverlay(false);
+    });
+  }, [notes, combo, hitNote]);
+
+  // Shake to Vent hook
+  const { 
+    isAvailable: shakeAvailable, 
+    ventProgress, 
+    isVented,
+    shakesNeeded 
+  } = useShakeToVent(handleVent, 3);
 
   // Check if song is unlocked
   useEffect(() => {
@@ -274,6 +329,18 @@ export default function GameScreen({ navigation, route }: GameScreenProps) {
         <View style={[styles.healthBar, { width: `${health}%`, backgroundColor: health > 30 ? '#4ade80' : '#f87171' }]} />
       </View>
 
+      {/* Shake to Vent Indicator */}
+      {shakeAvailable && (
+        <View style={styles.ventContainer}>
+          <View style={styles.ventBar}>
+            <View style={[styles.ventFill, { width: `${ventProgress * 100}%` }]} />
+          </View>
+          <Text style={styles.ventText}>
+            {isVented ? '💥 VENTED!' : `📳 Shake ${shakesNeeded}x to Vent`}
+          </Text>
+        </View>
+      )}
+
       {/* Audio Visualizer */}
       {showVisualizer && (
         <View style={styles.visualizerContainer}>
@@ -351,6 +418,26 @@ export default function GameScreen({ navigation, route }: GameScreenProps) {
           {showVisualizer ? '📊' : '📈'}
         </Text>
       </TouchableOpacity>
+
+      {/* Vent Overlay Effect */}
+      {showVentOverlay && (
+        <Animated.View
+          style={[
+            styles.ventOverlay,
+            {
+              opacity: ventAnimationRef.current,
+              transform: [{
+                scale: ventAnimationRef.current.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.5, 2],
+                }),
+              }],
+            },
+          ]}
+        >
+          <Text style={styles.ventOverlayText}>💥 VENT! 💥</Text>
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -400,6 +487,29 @@ const styles = StyleSheet.create({
   },
   healthBar: {
     height: '100%',
+  },
+  ventContainer: {
+    backgroundColor: '#1a1a2e',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2d2d44',
+  },
+  ventBar: {
+    height: 4,
+    backgroundColor: '#2d2d44',
+    borderRadius: 2,
+    marginBottom: 4,
+  },
+  ventFill: {
+    height: '100%',
+    backgroundColor: '#ff006e',
+    borderRadius: 2,
+  },
+  ventText: {
+    fontSize: 11,
+    color: '#888',
+    textAlign: 'center',
   },
   visualizerContainer: {
     backgroundColor: '#1a1a2e',
@@ -525,5 +635,24 @@ const styles = StyleSheet.create({
   },
   visualizerToggleText: {
     fontSize: 20,
+  },
+  ventOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255,0,110,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  ventOverlayText: {
+    fontSize: 48,
+    fontWeight: '900',
+    color: '#fff',
+    textShadowColor: '#ff006e',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 30,
   },
 });
