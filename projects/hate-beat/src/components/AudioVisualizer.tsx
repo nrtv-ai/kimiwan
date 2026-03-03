@@ -32,7 +32,7 @@ export default function AudioVisualizer({
 
   const renderBars = () => {
     const barWidth = width / barCount;
-    const bars: JSX.Element[] = [];
+    const bars: React.ReactElement[] = [];
     
     const samplesPerBar = Math.floor(analysisData.frequencyData.length / barCount);
     
@@ -95,7 +95,7 @@ export default function AudioVisualizer({
     const centerX = width / 2;
     const centerY = height / 2;
     const maxRadius = Math.min(width, height) / 2 - 5;
-    const bars: JSX.Element[] = [];
+    const bars: React.ReactElement[] = [];
     
     const samplesPerBar = Math.floor(analysisData.frequencyData.length / barCount);
     

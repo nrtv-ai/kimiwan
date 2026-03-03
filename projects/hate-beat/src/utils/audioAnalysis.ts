@@ -142,10 +142,12 @@ export function useAudioAnalyzer(
         return;
       }
 
-      audioContextRef.current = new AudioContextClass();
-      analyserRef.current = audioContextRef.current.createAnalyser();
-      analyserRef.current.fftSize = 256;
-      analyserRef.current.smoothingTimeConstant = 0.8;
+      const audioContext = new AudioContextClass();
+      audioContextRef.current = audioContext;
+      const analyser = audioContext.createAnalyser();
+      analyserRef.current = analyser;
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.8;
 
       setIsAnalyzing(true);
       analyzeAudio();

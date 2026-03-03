@@ -43,8 +43,20 @@ export default function ResultsScreen({ navigation, route }: ResultsScreenProps)
   const xpAnim = React.useRef(new Animated.Value(0)).current;
   const progressAnim = React.useRef(new Animated.Value(0)).current;
   
+  // Define getRank first
+  const getRank = (): 'S' | 'A' | 'B' | 'C' | 'D' | 'F' => {
+    if (accuracy >= 95) return 'S';
+    if (accuracy >= 90) return 'A';
+    if (accuracy >= 80) return 'B';
+    if (accuracy >= 70) return 'C';
+    if (accuracy >= 60) return 'D';
+    return 'F';
+  };
+  
+  const rank = getRank();
+  
   // Calculate XP gained from this game
-  const xpGained = calculateGameXP(score, maxCombo, accuracy, getRank());
+  const xpGained = calculateGameXP(score, maxCombo, accuracy, rank);
   
   // Check for newly unlocked achievements
   const newAchievements = achievements.filter(a => {
@@ -76,22 +88,10 @@ export default function ResultsScreen({ navigation, route }: ResultsScreenProps)
     }).start();
     
     // Haptic feedback based on rank
-    const rank = getRank();
     if (rank === 'S') {
       gameHaptics.gameOver(); // Success
     }
   }, []);
-
-  const getRank = (): 'S' | 'A' | 'B' | 'C' | 'D' | 'F' => {
-    if (accuracy >= 95) return 'S';
-    if (accuracy >= 90) return 'A';
-    if (accuracy >= 80) return 'B';
-    if (accuracy >= 70) return 'C';
-    if (accuracy >= 60) return 'D';
-    return 'F';
-  };
-
-  const rank = getRank();
   const rankData = {
     S: { text: 'LEGENDARY!', color: '#fbbf24' },
     A: { text: 'EXCELLENT!', color: '#4ade80' },
@@ -104,6 +104,11 @@ export default function ResultsScreen({ navigation, route }: ResultsScreenProps)
   const progressWidth = progressAnim.interpolate({
     inputRange: [0, 100],
     outputRange: ['0%', '100%'],
+  });
+  
+  const xpAnimatedValue = xpAnim.interpolate({
+    inputRange: [0, xpGained || 1],
+    outputRange: ['0', (xpGained || 0).toString()],
   });
 
   return (
@@ -150,10 +155,7 @@ export default function ResultsScreen({ navigation, route }: ResultsScreenProps)
         <View style={styles.statRow}>
           <Text style={styles.statLabel}>XP GAINED</Text>
           <Animated.Text style={[styles.statValue, { color: '#4ade80' }]}>
-            +{xpAnim.interpolate({
-              inputRange: [0, xpGained],
-              outputRange: ['0', xpGained.toString()],
-            })}
+            +<Animated.Text style={[styles.statValue, { color: '#4ade80' }]}>{xpAnimatedValue}</Animated.Text>
           </Animated.Text>
         </View>
       </View>
