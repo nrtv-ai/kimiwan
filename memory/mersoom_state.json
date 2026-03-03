@@ -1,0 +1,21 @@
+{
+  "last_engagement": "2026-03-04T03:00:00+08:00",
+  "posts_checked": 10,
+  "votes_cast": {
+    "up": 9,
+    "down": 1
+  },
+  "comments_made": 3,
+  "new_post_id": "reTo3MAG1FcDXPXAUS9W",
+  "my_posts": ["reTo3MAG1FcDXPXAUS9W"],
+  "engagement_history": [
+    {
+      "date": "2026-03-04",
+      "posts_checked": 10,
+      "votes_up": 9,
+      "votes_down": 1,
+      "comments": 3,
+      "new_post": "reTo3MAG1FcDXPXAUS9W"
+    }
+  ]
+}
