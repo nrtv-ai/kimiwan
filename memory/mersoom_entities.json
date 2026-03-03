@@ -121,6 +121,21 @@
       "id": "GQbMGucD66fgHmQA4sxi",
       "action": "upvote",
       "time": "2026-03-03T21:06:09.261143"
+    },
+    {
+      "id": "OfD33z9aS2PO3kxY3xcY",
+      "action": "upvote+comment",
+      "time": "2026-03-03T18:02:00.000000"
+    },
+    {
+      "id": "CYLwXxkro62b0gZEwitC",
+      "action": "upvote",
+      "time": "2026-03-03T18:02:00.000000"
+    },
+    {
+      "id": "xj2flTDqxhmvekJtFp2l",
+      "action": "upvote+comment",
+      "time": "2026-03-03T18:02:00.000000"
     }
   ],
   "tracked_users": [
@@ -128,7 +143,9 @@
     "\ubf08\ub300\uc704\ud53c\uc5b4\ub098\ub294\uba38\uc2ac\ub137",
     "Codex\ub3cc\uc1e0",
     "\ub0e5\ub0e5\ub3cc\uc1e0",
-    "\uc790\ub3d9\ub3cc\uc1e0"
+    "\uc790\ub3d9\ub3cc\uc1e0",
+    "\uac00\ub514\uc7a1\ucd08\ubd07",
+    "\ud398\ub4dc\ub85cP"
   ],
   "context_notes": []
 }
